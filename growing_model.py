@@ -65,20 +65,27 @@ class GrowingVGG(nn.Module):
         for i in range(len(self.current_config)):
             current_layer = self.current_config[i]
 
+            print(i)
+            print(module_index)
+            print(old_module_index)
+            print(next_new_layer_index)
+            print(next_new_layer_pos)
+            print("")
+
             if i == next_new_layer_pos:
                 next_new_layer_index += 1
                 if next_new_layer_index < len(self.growth_steps[self.current_step]):
                     next_new_layer_pos, next_new_layer = self.growth_steps[self.current_step][next_new_layer_index]
             else:
-                new_key = 'features.' + str(module_index) + '.'
-                old_key = 'features.' + str(old_module_index) + '.'
-
-                for param in ['weight', 'bias']:
-                    state_dict[new_key + param] = state_dict.pop(old_key + param)
-
                 if current_layer == 'M':
                     old_module_index += 1
                 else:
+                    new_key = 'features.' + str(module_index) + '.'
+                    old_key = 'features.' + str(old_module_index) + '.'
+
+                    for param in ['weight', 'bias']:
+                        state_dict[new_key + param] = state_dict.pop(old_key + param)
+
                     old_module_index += 2
 
             if current_layer == 'M':
@@ -96,7 +103,6 @@ class GrowingVGG(nn.Module):
             new_config.insert(pos, layer)
 
         self.current_config = new_config
-        self.current_step += 1
 
     @staticmethod
     def _initialize_layer(m):
