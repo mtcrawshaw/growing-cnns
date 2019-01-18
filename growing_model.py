@@ -37,8 +37,7 @@ class GrowingVGG(nn.Module):
             nn.Linear(4096, num_classes),
         )
 
-        for m in self.modules():
-            m = GrowingVGG._initialize_layer(m)
+        self._initialize_layers()
 
     def forward(self, x):
         x = self.features(x)
@@ -65,13 +64,6 @@ class GrowingVGG(nn.Module):
         for i in range(len(self.current_config)):
             current_layer = self.current_config[i]
 
-            print(i)
-            print(module_index)
-            print(old_module_index)
-            print(next_new_layer_index)
-            print(next_new_layer_pos)
-            print("")
-
             if i == next_new_layer_pos:
                 next_new_layer_index += 1
                 if next_new_layer_index < len(self.growth_steps[self.current_step]):
@@ -93,6 +85,7 @@ class GrowingVGG(nn.Module):
             else:
                 module_index += 2
         
+        self._initialize_layers()
         self.load_state_dict(state_dict, strict=False)
         self.current_step += 1
 
@@ -104,20 +97,18 @@ class GrowingVGG(nn.Module):
 
         self.current_config = new_config
 
-    @staticmethod
-    def _initialize_layer(m):
-        if isinstance(m, nn.Conv2d):
-            nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-            if m.bias is not None:
+    def _initialize_layers(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
-        elif isinstance(m, nn.BatchNorm2d):
-            nn.init.constant_(m.weight, 1)
-            nn.init.constant_(m.bias, 0)
-        elif isinstance(m, nn.Linear):
-            nn.init.normal_(m.weight, 0, 0.01)
-            nn.init.constant_(m.bias, 0)
-
-        return m
+            elif isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight, 0, 0.01)
+                nn.init.constant_(m.bias, 0)
 
 def make_layers(cfg, batch_norm=False):
     layers = []
