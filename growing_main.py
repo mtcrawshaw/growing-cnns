@@ -18,19 +18,10 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 
 from utils import *
-from model import vgg16, resnet34, resnet50
-
-model_names = ['vgg16', 'resnet34', 'resnet50']
+from growing_model import GrowingVGG
 
 parser = argparse.ArgumentParser(description='Growing CNNs with PyTorch')
 parser.add_argument('name', type=str, help='name of experiment')
-parser.add_argument('-a', '--arch', metavar='ARCH', default='vgg16',
-                    choices=model_names,
-                    help='model architecture: ' +
-                        ' | '.join(model_names) +
-                        ' (default: vgg16)')
-parser.add_argument('--pretrained', dest='pretrained', action='store_true',
-                    help='use pre-trained model')
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 parser.add_argument('--epochs', default=90, type=int, metavar='N',
@@ -50,12 +41,12 @@ parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
 parser.add_argument('--wd', '--weight-decay', default=1e-4, type=float,
                     metavar='W', help='weight decay (default: 1e-4)',
                     dest='weight_decay')
+parser.add_argument('--bn', '--batch_norm', default=False, 
+                    help='batch normalization (default: False)', action='store_true')
 parser.add_argument('-p', '--print-freq', default=10, type=int,
                     metavar='N', help='print frequency (default: 10)')
 parser.add_argument('--models_dir', default='./models', type=str,
                     help='directory containing models (default: "./models")')
-parser.add_argument('--resume', default='', type=str, metavar='PATH',
-                    help='path to latest checkpoint (default: none)')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
 parser.add_argument('--seed', default=None, type=int,
@@ -90,22 +81,17 @@ def main():
     num_classes = 10 # Temporary
 
     # create model
-    if args.pretrained:
-        print("=> using pre-trained model '{}'".format(args.arch))
-        model = eval(args.arch)(pretrained=True, num_classes=num_classes)
-    else:
-        print("=> creating model '{}'".format(args.arch))
-        model = eval(args.arch)(num_classes=num_classes)
+    print("=> creating model GrowingVGG")
+    model = GrowingVGG(num_classes=num_classes, batch_norm=args.bn)
 
+    def print_model_info(model):
+        print(model.state_dict().keys())
+        print(type(model.state_dict()['features.0.weight']))
+        print(list(model.modules()))
 
-    for name, param in model.named_parameters():
-        print(name)
-    x = 0 
-    for m in model.modules():
-        print(type(m))
-        x += 1
-    print(x)
-    print(model.state_dict().keys())
+    print_model_info(model)
+    model.step()
+    print_model_info(model)
     exit()
 
     if args.gpu is not None:
