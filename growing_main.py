@@ -24,8 +24,8 @@ parser = argparse.ArgumentParser(description='Growing CNNs with PyTorch')
 parser.add_argument('name', type=str, help='name of experiment')
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', default=90, type=int, metavar='N',
-                    help='number of total epochs to run')
+parser.add_argument('-e', '--epochs-per-step', default=30, type=int, metavar='N',
+                    help='number of epochs to run during each growth step')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=256, type=int,
@@ -47,7 +47,7 @@ parser.add_argument('-p', '--print-freq', default=10, type=int,
                     metavar='N', help='print frequency (default: 10)')
 parser.add_argument('--models_dir', default='./models', type=str,
                     help='directory containing models (default: "./models")')
-parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
+parser.add_argument('--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
 parser.add_argument('--seed', default=None, type=int,
                     help='seed for initializing training. ')
@@ -84,26 +84,18 @@ def main():
     print("=> creating model GrowingVGG")
     model = GrowingVGG(num_classes=num_classes, batch_norm=args.bn)
 
-    def print_model_info(model):
-        print(model.state_dict().keys())
-        print(type(model.state_dict()['features.0.weight']))
-        print(list(model.modules()))
-
-    print_model_info(model)
-    model.step()
-    print_model_info(model)
-    exit()
-
     if args.gpu is not None:
         torch.cuda.set_device(args.gpu)
         model = model.cuda(args.gpu)
     else:
         # DataParallel will divide and allocate batch_size to all available GPUs
-        if args.arch.startswith('alexnet') or args.arch.startswith('vgg'):
+        """if args.arch.startswith('alexnet') or args.arch.startswith('vgg'):
             model.features = torch.nn.DataParallel(model.features)
             model.cuda()
         else:
-            model = torch.nn.DataParallel(model).cuda()
+            model = torch.nn.DataParallel(model).cuda()"""
+        model.features = torch.nn.DataParallel(model.features)
+        model.cuda()
 
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda(args.gpu)
@@ -113,7 +105,7 @@ def main():
                                 weight_decay=args.weight_decay)
 
     # optionally resume from a checkpoint
-    if args.resume:
+    """if args.resume:
         if os.path.isfile(args.resume):
             print("=> loading checkpoint '{}'".format(args.resume))
             checkpoint = torch.load(args.resume)
@@ -125,7 +117,7 @@ def main():
                   .format(args.resume, checkpoint['epoch']))
         else:
             print("=> no checkpoint found at '{}'".format(args.resume))
-            return
+            return"""
 
     cudnn.benchmark = True
 
@@ -164,25 +156,32 @@ def main():
         validate(val_loader, model, criterion, args)
         return
 
-    for epoch in range(args.start_epoch, args.epochs):
-        adjust_learning_rate(optimizer, epoch, args)
+    epoch = 0
+    print(model.state_dict().keys())
+    for step in range(len(model.growth_steps) + 1):
+        for inner_epoch in range(args.epochs_per_step):
+            adjust_learning_rate(optimizer, epoch, args)
 
-        # train for one epoch
-        train(train_loader, model, criterion, optimizer, epoch, args)
+            # train for one epoch
+            train(train_loader, model, criterion, optimizer, epoch, args)
 
-        # evaluate on validation set
-        acc1 = validate(val_loader, model, criterion, args)
+            # evaluate on validation set
+            acc1 = validate(val_loader, model, criterion, args)
 
-        # remember best acc@1 and save checkpoint
-        is_best = acc1 > best_acc1
-        best_acc1 = max(acc1, best_acc1)
-        save_checkpoint(args, {
-            'epoch': epoch + 1,
-            'arch': args.arch,
-            'state_dict': model.state_dict(),
-            'best_acc1': best_acc1,
-            'optimizer' : optimizer.state_dict(),
-        }, is_best)
+            # remember best acc@1 and save checkpoint
+            is_best = acc1 > best_acc1
+            best_acc1 = max(acc1, best_acc1)
+            save_checkpoint(args, {
+                'epoch': epoch + 1,
+                'state_dict': model.state_dict(),
+                'best_acc1': best_acc1,
+                'optimizer' : optimizer.state_dict(),
+            }, is_best)
+
+            epoch += 1
+
+        print(model.state_dict().keys())
+        model.step(parallel=args.gpu is None)
 
 
 def train(train_loader, model, criterion, optimizer, epoch, args):

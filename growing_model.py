@@ -45,7 +45,7 @@ class GrowingVGG(nn.Module):
         x = self.classifier(x)
         return x
 
-    def step(self):
+    def step(self, parallel=False):
         assert self.current_step < len(self.growth_steps)
 
         # Save current state dictionary
@@ -61,6 +61,9 @@ class GrowingVGG(nn.Module):
         old_module_index = 0
         next_new_layer_index = 0
         next_new_layer_pos, next_new_layer = self.growth_steps[self.current_step][next_new_layer_index]
+
+        param_base = 'features.module.' if parallel else 'features.'
+
         for i in range(len(self.current_config)):
             current_layer = self.current_config[i]
 
@@ -72,8 +75,8 @@ class GrowingVGG(nn.Module):
                 if current_layer == 'M':
                     old_module_index += 1
                 else:
-                    new_key = 'features.' + str(module_index) + '.'
-                    old_key = 'features.' + str(old_module_index) + '.'
+                    new_key = param_base + str(module_index) + '.'
+                    old_key = param_base + str(old_module_index) + '.'
 
                     for param in ['weight', 'bias']:
                         state_dict[new_key + param] = state_dict.pop(old_key + param)
