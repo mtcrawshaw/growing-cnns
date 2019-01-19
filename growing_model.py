@@ -8,15 +8,17 @@ import torch.utils.model_zoo as model_zoo
 import torchvision
 from torchvision.models.resnet import conv3x3, BasicBlock, Bottleneck
 
+from model import make_layers, VGG
+
 """
     Growing VGG Model
 """
 
-class GrowingVGG(nn.Module):
+class GrowingVGGController():
 
     def __init__(self, num_classes=1000, batch_norm=True):
-        super(GrowingVGG, self).__init__()
-
+        
+        self.num_classes = num_classes
         self.batch_norm = batch_norm
 
         # Define growth steps
@@ -25,36 +27,27 @@ class GrowingVGG(nn.Module):
         self.growth_steps.append([(1, 64), (4, 128), (7, 256), (10, 512), (13, 512)])
         self.growth_steps.append([(8, 256), (12, 512), (16, 512)])
         
-        self.current_step = 0
-        self.features = make_layers(self.current_config, batch_norm=batch_norm)
-        self.classifier = nn.Sequential(
-            nn.Linear(512, 4096), # 512 -> 512 * 7 * 7 for imagenet
-            nn.ReLU(True),
-            nn.Dropout(),
-            nn.Linear(4096, 4096), 
-            nn.ReLU(True),
-            nn.Dropout(),
-            nn.Linear(4096, num_classes),
-        )
+        self.current_step = -1
 
-        self._initialize_layers()
-
-    def forward(self, x):
-        x = self.features(x)
-        x = x.view(x.size(0), -1)
-        x = self.classifier(x)
-        return x
-
-    def step(self, parallel=False):
+    def step(self, state_dict=None, parallel=True):
+        """
+        Produces the next step in the growing model from the previous state dictionary
+        Args:
+            state_dict (Ordered dict): State dictionary from model to be grown
+            parallel (bool): Whether or not training is running on multiple GPUs, which affects parameter names in state_dict
+        """
         assert self.current_step < len(self.growth_steps)
 
-        # Save current state dictionary
-        state_dict = self.state_dict()
+        # Initially creating model
+        if self.current_step == -1:
+            self.current_step = 0
+            model = VGG(make_layers(self.current_config, batch_norm=self.batch_norm), num_classes=self.num_classes) 
+            return model
 
         # Create new layers
         old_config = list(self.current_config)
         self._grow_current_config()
-        self.features = make_layers(self.current_config, batch_norm=self.batch_norm)
+        model = VGG(make_layers(self.current_config, batch_norm=self.batch_norm), num_classes=self.num_classes)
 
         # Rename keys in old_state_dict to match new layer names
         module_index = 0
@@ -86,11 +79,16 @@ class GrowingVGG(nn.Module):
             if current_layer == 'M':
                 module_index += 1
             else:
-                module_index += 2
+                if self.batch_norm:
+                    module_index += 3
+                else:
+                    module_index += 2
         
-        self._initialize_layers()
-        self.load_state_dict(state_dict, strict=False)
+        # Load newly named parameters from state_dict into new model
+        model.load_state_dict(state_dict, strict=False)
         self.current_step += 1
+
+        return model
 
     def _grow_current_config(self):
         new_config = list(self.current_config)
@@ -99,32 +97,4 @@ class GrowingVGG(nn.Module):
             new_config.insert(pos, layer)
 
         self.current_config = new_config
-
-    def _initialize_layers(self):
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0)
-            elif isinstance(m, nn.BatchNorm2d):
-                nn.init.constant_(m.weight, 1)
-                nn.init.constant_(m.bias, 0)
-            elif isinstance(m, nn.Linear):
-                nn.init.normal_(m.weight, 0, 0.01)
-                nn.init.constant_(m.bias, 0)
-
-def make_layers(cfg, batch_norm=False):
-    layers = []
-    in_channels = 3
-    for v in cfg:
-        if v == 'M':
-            layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
-        else:
-            conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1)
-            if batch_norm:
-                layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=True)]
-            else:
-                layers += [conv2d, nn.ReLU(inplace=True)]
-            in_channels = v
-    return nn.Sequential(*layers)
 

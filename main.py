@@ -97,15 +97,7 @@ def main():
         print("=> creating model '{}'".format(args.arch))
         model = eval(args.arch)(num_classes=num_classes)
 
-
-    for name, param in model.named_parameters():
-        print(name)
-    x = 0 
-    for m in model.modules():
-        print(type(m))
-        x += 1
-    print(x)
-    print(model.state_dict().keys())
+    print(type(model.state_dict()))
     exit()
 
     if args.gpu is not None:
