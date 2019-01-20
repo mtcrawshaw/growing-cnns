@@ -126,7 +126,7 @@ def main():
 
     for growth_step in range(TOTAL_STEPS):
         # create model and optimizer
-        print("=> creating model GrowingVGG")
+        print("=> creating growth iteration %d for model GrowingVGG" % growth_step)
         if growth_step == 0:
             model = growth_controller.step(parallel=parallel)
         else:

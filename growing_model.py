@@ -74,15 +74,13 @@ class GrowingVGGController():
                     for param in ['weight', 'bias']:
                         state_dict[new_key + param] = state_dict.pop(old_key + param)
 
-                    old_module_index += 2
+                    old_module_index += 3 if self.batch_norm else 2
 
             if current_layer == 'M':
-                module_index += 1
+                module_index += 1 # Max pooling layer only contains 1 module (a max pooling module)
             else:
-                if self.batch_norm:
-                    module_index += 3
-                else:
-                    module_index += 2
+                module_index += 3 if self.batch_norm else 2 # Convolutional layer contains 2 modules (conv and
+                                                            # relu), 3 with batch norm
         
         # Load newly named parameters from state_dict into new model
         model.load_state_dict(state_dict, strict=False)
