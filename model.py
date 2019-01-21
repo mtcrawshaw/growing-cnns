@@ -55,7 +55,7 @@ class VGG(nn.Module):
                 nn.init.constant_(m.bias, 0)
 
 
-def make_layers(cfg, batch_norm=False):
+def make_layers(cfg, batch_norm=True):
     layers = []
     in_channels = 3
     for v in cfg:

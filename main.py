@@ -97,9 +97,6 @@ def main():
         print("=> creating model '{}'".format(args.arch))
         model = eval(args.arch)(num_classes=num_classes)
 
-    print(type(model.state_dict()))
-    exit()
-
     if args.gpu is not None:
         torch.cuda.set_device(args.gpu)
         model = model.cuda(args.gpu)
