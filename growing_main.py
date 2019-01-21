@@ -45,10 +45,10 @@ parser.add_argument('--bn', '--batch-norm', default=False,
                     help='batch normalization (default: False)', action='store_true')
 parser.add_argument('-p', '--print-freq', default=10, type=int,
                     metavar='N', help='print frequency (default: 10)')
-parser.add_argument('--models_dir', default='./models', type=str,
-                    help='directory containing models (default: "./models")')
-parser.add_argument('--evaluate', dest='evaluate', action='store_true',
-                    help='evaluate model on validation set')
+parser.add_argument('--models_dir', default='./experiments/growing', type=str,
+                    help='directory containing models (default: "./experiments/growing")')
+parser.add_argument('--evaluate', dest='modelPath', type=str, default=None,
+                    help='evaluate model with path modelPath on validation set')
 parser.add_argument('--seed', default=None, type=int,
                     help='seed for initializing training. ')
 parser.add_argument('--gpu', default=None, type=int,
@@ -77,6 +77,11 @@ if args.gpu is not None:
 
 def main():
     global best_acc1, args
+
+    modelPath = os.path.join(args.models_dir, args.name)
+    if os.path.isdir(modelPath):
+        print("Experiment with name '%s' already exists!" % args.name)
+        exit()
 
     num_classes = 10 # Temporary
     cudnn.benchmark = True
@@ -115,14 +120,31 @@ def main():
         val_dataset, batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True)
 
-    if args.evaluate:
-        validate(val_loader, model, criterion, args)
-        return
-
     growth_controller = GrowingVGGController(num_classes, args.bn)
     TOTAL_STEPS = 3 # Temporary until growth pattern becomes a parameter
     parallel = args.gpu is None # Necessary since parallelization changes parameter names in state dict
     total_epoch = 0
+
+    # Only evaluate model, no training
+    if args.modelPath is not None:
+        for growth_step in range(TOTAL_STEPS):
+            if growth_step == 0:
+                model = growth_controller.step(parallel=parallel)
+            else:
+                model = growth_controller.step(model.state_dict(), parallel=parallel)
+
+            if args.gpu is not None:
+                torch.cuda.set_device(args.gpu)
+                model = model.cuda(args.gpu)
+            else:
+                model.features = torch.nn.DataParallel(model.features)
+                model.cuda()
+
+        checkpoint = torch.load(args.modelPath)
+        model.load_state_dict(checkpoint['state_dict'])
+
+        validate(val_loader, model, criterion, args)
+        return
 
     for growth_step in range(TOTAL_STEPS):
         # create model and optimizer
@@ -160,14 +182,15 @@ def main():
             acc1 = validate(val_loader, model, criterion, args)
 
             # remember best acc@1 and save checkpoint
-            """is_best = acc1 > best_acc1
+            is_best = acc1 > best_acc1
             best_acc1 = max(acc1, best_acc1)
             save_checkpoint(args, {
+                'growth_step': growth_step,
                 'epoch': epoch + 1,
                 'state_dict': model.state_dict(),
                 'best_acc1': best_acc1,
                 'optimizer' : optimizer.state_dict(),
-            }, is_best)"""
+            }, is_best)
 
             total_epoch += 1
 

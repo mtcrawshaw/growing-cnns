@@ -52,8 +52,8 @@ parser.add_argument('--wd', '--weight-decay', default=1e-4, type=float,
                     dest='weight_decay')
 parser.add_argument('-p', '--print-freq', default=10, type=int,
                     metavar='N', help='print frequency (default: 10)')
-parser.add_argument('--models_dir', default='./models', type=str,
-                    help='directory containing models (default: "./models")')
+parser.add_argument('--models_dir', default='./experiments/static', type=str,
+                    help='directory containing models (default: "./experiments/static")')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
                     help='path to latest checkpoint (default: none)')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
@@ -88,6 +88,11 @@ def main():
     global best_acc1, args
 
     num_classes = 10 # Temporary
+
+    modelPath = os.path.join(args.models_dir, args.name)
+    if os.path.isdir(modelPath) and not args.resume:
+        print("Experiment with name '%s' already exists!" % args.name)
+        exit()
 
     # create model
     if args.pretrained:

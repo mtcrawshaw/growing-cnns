@@ -43,9 +43,12 @@ def accuracy(output, target, topk=(1,)):
         return res
 
 def save_checkpoint(args, state, is_best):
-    filename = os.path.join(args.models_dir, args.name)
+    modelPath = os.path.join(args.models_dir, args.name)
+    if not os.path.isdir(modelPath):
+        os.makedirs(modelPath)
+    filename = os.path.join(modelPath, args.name)
     filename += '.pth'
-    best_filename = os.path.join(args.models_dir, args.name + '_best')
+    best_filename = os.path.join(modelPath, args.name + '_best')
     best_filename += '.pth'
     torch.save(state, filename)
     if is_best:
