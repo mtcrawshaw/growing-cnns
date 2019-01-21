@@ -4,6 +4,7 @@ import random
 import time
 import warnings
 import sys
+import json
 
 import torch
 import torch.nn as nn
@@ -89,8 +90,8 @@ def main():
 
     num_classes = 10 # Temporary
 
-    modelPath = os.path.join(args.models_dir, args.name)
-    if os.path.isdir(modelPath) and not args.resume:
+    experimentDir = os.path.join(args.models_dir, args.name)
+    if os.path.isdir(experimentDir) and not args.evaluate:
         print("Experiment with name '%s' already exists!" % args.name)
         exit()
 
@@ -169,17 +170,23 @@ def main():
         num_workers=args.workers, pin_memory=True)
 
     if args.evaluate:
-        validate(val_loader, model, criterion, args)
+        validate(val_loader, model, criterion, 0, args, [])
         return
+
+    # Results object to write out
+    results = {}
+    results['train_iterations_per_epoch'] = len(train_loader)
+    train_results = []
+    validate_results = []
 
     for epoch in range(args.start_epoch, args.epochs):
         adjust_learning_rate(optimizer, epoch, args)
 
         # train for one epoch
-        train(train_loader, model, criterion, optimizer, epoch, args)
+        train(train_loader, model, criterion, optimizer, epoch, args, train_results)
 
         # evaluate on validation set
-        acc1 = validate(val_loader, model, criterion, args)
+        acc1 = validate(val_loader, model, criterion, epoch, args, validate_results)
 
         # remember best acc@1 and save checkpoint
         is_best = acc1 > best_acc1
@@ -192,8 +199,14 @@ def main():
             'optimizer' : optimizer.state_dict(),
         }, is_best)
 
+    # Write out results to log
+    results['train_results'] = list(train_results)
+    results['validate_results'] = list(validate_results)
+    logPath = os.path.join(experimentDir, '%s.log' % args.name)
+    with open(logPath, 'w') as logFile:
+        json.dump(results, logFile, indent=4)
 
-def train(train_loader, model, criterion, optimizer, epoch, args):
+def train(train_loader, model, criterion, optimizer, epoch, args, train_results):
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
@@ -240,9 +253,11 @@ def train(train_loader, model, criterion, optimizer, epoch, args):
                   'Acc@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
                    epoch, i, len(train_loader), batch_time=batch_time,
                    data_time=data_time, loss=losses, top1=top1, top5=top5))
+            train_results.append({'epoch': epoch, 'iteration': i, 'time': batch_time.val, 'loss': losses.val,
+                                      'top1': top1.val.item(), 'top5': top5.val.item()})
 
 
-def validate(val_loader, model, criterion, args):
+def validate(val_loader, model, criterion, epoch, args, validate_results):
     batch_time = AverageMeter()
     losses = AverageMeter()
     top1 = AverageMeter()
@@ -280,9 +295,11 @@ def validate(val_loader, model, criterion, args):
                       'Acc@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
                        i, len(val_loader), batch_time=batch_time, loss=losses,
                        top1=top1, top5=top5))
+                
 
         print(' * Acc@1 {top1.avg:.3f} Acc@5 {top5.avg:.3f}'
               .format(top1=top1, top5=top5))
+        validate_results.append({'epoch': epoch, 'loss': losses.avg, 'top1': top1.avg.item(), 'top5': top5.avg.item()})
 
     return top1.avg
 

@@ -4,6 +4,7 @@ import random
 import time
 import warnings
 import sys
+import json
 
 import torch
 import torch.nn as nn
@@ -18,7 +19,7 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 
 from utils import *
-from growing_model import GrowingVGGController
+from growth_controller import GrowingVGGController
 
 parser = argparse.ArgumentParser(description='Growing CNNs with PyTorch')
 parser.add_argument('name', type=str, help='name of experiment')
@@ -78,8 +79,8 @@ if args.gpu is not None:
 def main():
     global best_acc1, args
 
-    modelPath = os.path.join(args.models_dir, args.name)
-    if os.path.isdir(modelPath):
+    experimentDir = os.path.join(args.models_dir, args.name)
+    if os.path.isdir(experimentDir) and args.modelPath is None:
         print("Experiment with name '%s' already exists!" % args.name)
         exit()
 
@@ -143,8 +144,14 @@ def main():
         checkpoint = torch.load(args.modelPath)
         model.load_state_dict(checkpoint['state_dict'])
 
-        validate(val_loader, model, criterion, args)
+        validate(val_loader, model, criterion, growth_step, 0, args, [])
         return
+
+    # Results object to write out
+    results = {}
+    results['train_iterations_per_epoch'] = len(train_loader)
+    train_results = []
+    validate_results = []
 
     for growth_step in range(TOTAL_STEPS):
         # create model and optimizer
@@ -176,10 +183,10 @@ def main():
             adjust_learning_rate(optimizer, total_epoch, args)
 
             # train for one epoch
-            train(train_loader, model, criterion, optimizer, epoch, args)
+            train(train_loader, model, criterion, optimizer, growth_step, epoch, args, train_results)
 
             # evaluate on validation set
-            acc1 = validate(val_loader, model, criterion, args)
+            acc1 = validate(val_loader, model, criterion, growth_step, epoch, args, validate_results)
 
             # remember best acc@1 and save checkpoint
             is_best = acc1 > best_acc1
@@ -194,8 +201,14 @@ def main():
 
             total_epoch += 1
 
+    # Write out results to log
+    results['train_results'] = list(train_results)
+    results['validate_results'] = list(validate_results)
+    logPath = os.path.join(experimentDir, '%s.log' % args.name)
+    with open(logPath, 'w') as logFile:
+        json.dump(results, logFile, indent=4)
 
-def train(train_loader, model, criterion, optimizer, epoch, args):
+def train(train_loader, model, criterion, optimizer, growth_step, epoch, args, train_results):
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
@@ -242,9 +255,12 @@ def train(train_loader, model, criterion, optimizer, epoch, args):
                   'Acc@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
                    epoch, i, len(train_loader), batch_time=batch_time,
                    data_time=data_time, loss=losses, top1=top1, top5=top5))
+            train_results.append({'growth_step': growth_step, 'epoch': epoch, 'iteration': i,
+                                  'time': batch_time.val, 'loss': losses.val, 'top1': top1.val.item(),
+                                  'top5': top5.val.item()})
 
 
-def validate(val_loader, model, criterion, args):
+def validate(val_loader, model, criterion, growth_step, epoch, args, validate_results):
     batch_time = AverageMeter()
     losses = AverageMeter()
     top1 = AverageMeter()
@@ -285,6 +301,8 @@ def validate(val_loader, model, criterion, args):
 
         print(' * Acc@1 {top1.avg:.3f} Acc@5 {top5.avg:.3f}'
               .format(top1=top1, top5=top5))
+        validate_results.append({'growth_step': growth_step, 'epoch': epoch, 'loss': losses.avg,
+                                 'top1': top1.avg.item(), 'top5': top5.avg.item()})
 
     return top1.avg
 
