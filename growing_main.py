@@ -121,8 +121,11 @@ def main():
         val_dataset, batch_size=args.batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True)
 
-    growth_controller = GrowingVGGController(num_classes, args.bn)
-    TOTAL_STEPS = 3 # Temporary until growth pattern becomes a parameter
+    initial_config = [64, 'M', 128, 'M', 256, 'M', 512, 'M', 512, 'M']
+    growth_steps = []
+    growth_steps.append([(1, 64), (4, 128), (7, 256), (10, 512), (13, 512)])
+    growth_steps.append([(8, 256), (12, 512), (16, 512)])
+    growth_controller = GrowingVGGController(initial_config, growth_steps, num_classes, args.bn)
     parallel = args.gpu is None # Necessary since parallelization changes parameter names in state dict
     total_epoch = 0
 
@@ -153,10 +156,10 @@ def main():
     train_results = []
     validate_results = []
 
-    for growth_step in range(TOTAL_STEPS):
+    for i, growth_step in enumerate(growth_controller.growth_steps):
         # create model and optimizer
-        print("=> creating growth iteration %d for model GrowingVGG" % growth_step)
-        if growth_step == 0:
+        print("=> creating growth iteration %d for model GrowingVGG" % i)
+        if i == 0:
             model = growth_controller.step(parallel=parallel)
         else:
             model = growth_controller.step(model.state_dict(), parallel=parallel)
@@ -183,16 +186,16 @@ def main():
             adjust_learning_rate(optimizer, total_epoch, args)
 
             # train for one epoch
-            train(train_loader, model, criterion, optimizer, growth_step, epoch, args, train_results)
+            train(train_loader, model, criterion, optimizer, i, epoch, args, train_results)
 
             # evaluate on validation set
-            acc1 = validate(val_loader, model, criterion, growth_step, epoch, args, validate_results)
+            acc1 = validate(val_loader, model, criterion, i, epoch, args, validate_results)
 
             # remember best acc@1 and save checkpoint
             is_best = acc1 > best_acc1
             best_acc1 = max(acc1, best_acc1)
             save_checkpoint(args, {
-                'growth_step': growth_step,
+                'growth_step': i,
                 'epoch': epoch + 1,
                 'state_dict': model.state_dict(),
                 'best_acc1': best_acc1,

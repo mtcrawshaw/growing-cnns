@@ -16,17 +16,14 @@ from model import make_layers, VGG
 
 class GrowingVGGController():
 
-    def __init__(self, num_classes=1000, batch_norm=True):
+    def __init__(self, initial_config, growth_steps, num_classes=1000, batch_norm=True):
         
         self.num_classes = num_classes
         self.batch_norm = batch_norm
 
         # Define growth steps
-        self.current_config = [64, 'M', 128, 'M', 256, 'M', 512, 'M', 512, 'M']
-        self.growth_steps = []
-        self.growth_steps.append([(1, 64), (4, 128), (7, 256), (10, 512), (13, 512)])
-        self.growth_steps.append([(8, 256), (12, 512), (16, 512)])
-        
+        self.current_config = list(initial_config)
+        self.growth_steps = list(growth_steps)
         self.current_step = -1
 
     def step(self, state_dict=None, parallel=True):
