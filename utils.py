@@ -20,9 +20,9 @@ class AverageMeter(object):
         self.count += n
         self.avg = self.sum / self.count
 
-def adjust_learning_rate(optimizer, epoch, args):
+def adjust_learning_rate(optimizer, epoch, initial_lr):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-    lr = args.lr * (0.1 ** (epoch // 30))
+    lr = initial_lr * (0.1 ** (epoch // 30))
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
@@ -42,13 +42,10 @@ def accuracy(output, target, topk=(1,)):
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
 
-def save_checkpoint(args, state, is_best):
-    modelPath = os.path.join(args.models_dir, args.name)
-    if not os.path.isdir(modelPath):
-        os.makedirs(modelPath)
-    filename = os.path.join(modelPath, args.name)
+def save_checkpoint(experimentDir, experimentName, state, is_best):
+    filename = os.path.join(experimentDir, experimentName)
     filename += '.pth'
-    best_filename = os.path.join(modelPath, args.name + '_best')
+    best_filename = os.path.join(experimentDir, experimentName + '_best')
     best_filename += '.pth'
     torch.save(state, filename)
     if is_best:

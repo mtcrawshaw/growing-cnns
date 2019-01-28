@@ -1,0 +1,10 @@
+{
+    "growing": true,
+
+    "epochs_per_step": 1,
+    "batch_size": 256,
+    "learning_rate": 0.01,
+    "momentum": 0.9,
+    "weight_decay": 1e-4,
+    "batch_normalization": true
+}
