@@ -1,5 +1,6 @@
-data/
-experiments/
+experiments/static/*
+experiments/growing/*
 pretrained_models/
 __pycache__/
 notes/
+data/cifar-10-batches-py
