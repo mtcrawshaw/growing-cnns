@@ -73,6 +73,7 @@ def main():
 
     num_classes = 10 # Temporary
     cudnn.benchmark = True
+    torch.cuda.set_device(args.gpu)
 
     # define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda(args.gpu)
@@ -128,7 +129,6 @@ def run_static(num_classes, args, settings, criterion, train_loader, val_loader)
         print("=> creating model '{}'".format(settings['arch']))
         model = models.__dict__[settings['arch']](num_classes=num_classes)
 
-    torch.cuda.set_device(args.gpu)
     model = model.cuda(args.gpu)
 
     # Create optimizer
@@ -211,7 +211,6 @@ def run_growing(num_classes, args, settings, criterion, train_loader, val_loader
         else:
             model = growth_controller.step(old_model=model)
 
-        torch.cuda.set_device(args.gpu)
         model = model.cuda(args.gpu)
 
         optimizer = torch.optim.SGD(model.parameters(), settings['learning_rate'],

@@ -66,6 +66,8 @@ class GrowthController():
 
                 old_layer_index += 1
         
+        new_model.classifier.load_state_dict(old_model.classifier.state_dict())
+
         self.current_step += 1
         return new_model
 
