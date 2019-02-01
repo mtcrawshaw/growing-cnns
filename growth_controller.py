@@ -26,6 +26,13 @@ class GrowthController():
 		self.growth_steps = list(growth_steps)
 		self.current_step = -1
 
+        # Define growth history, a list of the growth steps each layer was
+        # inserted during. So on step 0, this list will be all zeroes and with
+        # length equal to the number of layers on iteration 0. On step 1, this
+        # list will contain mostly zeroes, with ones inserted at the positions
+        # where new layers were inserted during the growth step, etc.
+        self.growth_history = []
+
 	def step(self, old_model=None):
 		"""
 		Produces the next step in the growing model from the previous state dictionary
@@ -38,6 +45,7 @@ class GrowthController():
 		if self.current_step == -1:
 			self.current_step = 0
 			new_model = CustomConvNet(self.current_config, num_classes=self.num_classes, batch_norm = self.batch_norm) 
+            self.growth_history = [0 for i in range(len(initial_config))]
 			return new_model
 
 		# Create new layers
@@ -59,6 +67,10 @@ class GrowthController():
 				if next_new_layer_index < len(self.growth_steps[self.current_step]):
 					next_new_layer_pos = self.growth_steps[self.current_step][next_new_layer_index][0]
 					next_new_layer = self.growth_steps[self.current_step][next_new_layer_index][1:]
+                
+                self.growth_history.insert(new_layer_index, self.current_step +
+                        1)
+
 			else:                       # Current layer is an old layer
 				if current_layer[0] == 'C':
 					state_dict = old_model.features.__getitem__(old_layer_index).state_dict()
