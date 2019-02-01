@@ -8,13 +8,13 @@ import torch.utils.model_zoo as model_zoo
 import torchvision
 from torchvision.models.resnet import conv3x3, BasicBlock, Bottleneck
 
-from model import make_layers, VGG
+from model import CustomConvNet
 
 """
-    Growing VGG Model
+    Growth Controller
 """
 
-class GrowingVGGController():
+class GrowthController():
 
     def __init__(self, initial_config, growth_steps, num_classes=1000, batch_norm=True):
         
@@ -26,69 +26,55 @@ class GrowingVGGController():
         self.growth_steps = list(growth_steps)
         self.current_step = -1
 
-    def step(self, state_dict=None, parallel=True):
+    def step(self, old_model=None):
         """
         Produces the next step in the growing model from the previous state dictionary
         Args:
-            state_dict (Ordered dict): State dictionary from model to be grown
-            parallel (bool): Whether or not training is running on multiple GPUs, which affects parameter names in state_dict
+            current_model (CustomConvNet): Model to be grown, that was also returned from step
         """
         assert self.current_step < len(self.growth_steps)
 
         # Initially creating model
         if self.current_step == -1:
             self.current_step = 0
-            model = VGG(make_layers(self.current_config, batch_norm=self.batch_norm), num_classes=self.num_classes) 
-            return model
+            new_model = CustomConvNet(self.current_config, num_classes=self.num_classes, batch_norm = self.batch_norm) 
+            return new_model
 
         # Create new layers
         old_config = list(self.current_config)
         self._grow_current_config()
-        model = VGG(make_layers(self.current_config, batch_norm=self.batch_norm), num_classes=self.num_classes)
+        new_model = CustomConvNet(self.current_config, num_classes=self.num_classes, batch_norm = self.batch_norm)
 
         # Rename keys in old_state_dict to match new layer names
-        module_index = 0
-        old_module_index = 0
+        old_layer_index = 0
         next_new_layer_index = 0
-        next_new_layer_pos, next_new_layer = self.growth_steps[self.current_step][next_new_layer_index]
+        next_new_layer_pos = self.growth_steps[self.current_step][next_new_layer_index][0]
+        next_new_layer = self.growth_steps[self.current_step][next_new_layer_index][1:] 
 
-        param_base = 'features.module.' if parallel else 'features.'
+        for new_layer_index in range(len(self.current_config)):
+            current_layer = self.current_config[new_layer_index]
 
-        for i in range(len(self.current_config)):
-            current_layer = self.current_config[i]
-
-            if i == next_new_layer_pos:
+            if new_layer_index == next_new_layer_pos: # Current layer is newly inserted in growth step
                 next_new_layer_index += 1
                 if next_new_layer_index < len(self.growth_steps[self.current_step]):
-                    next_new_layer_pos, next_new_layer = self.growth_steps[self.current_step][next_new_layer_index]
-            else:
-                if current_layer == 'M':
-                    old_module_index += 1
-                else:
-                    new_key = param_base + str(module_index) + '.'
-                    old_key = param_base + str(old_module_index) + '.'
+                    next_new_layer_pos = self.growth_steps[self.current_step][next_new_layer_index][0]
+                    next_new_layer = self.growth_steps[self.current_step][next_new_layer_index][1:]
+            else:                       # Current layer is an old layer
+                if current_layer[0] == 'C':
+                    state_dict = old_model.features.__getitem__(old_layer_index).state_dict()
+                    new_model.features.__getitem__(new_layer_index).load_state_dict(state_dict)
 
-                    for param in ['weight', 'bias']:
-                        state_dict[new_key + param] = state_dict.pop(old_key + param)
-
-                    old_module_index += 3 if self.batch_norm else 2
-
-            if current_layer == 'M':
-                module_index += 1 # Max pooling layer only contains 1 module (a max pooling module)
-            else:
-                module_index += 3 if self.batch_norm else 2 # Convolutional layer contains 2 modules (conv and
-                                                            # relu), 3 with batch norm
+                old_layer_index += 1
         
-        # Load newly named parameters from state_dict into new model
-        model.load_state_dict(state_dict, strict=False)
         self.current_step += 1
-
-        return model
+        return new_model
 
     def _grow_current_config(self):
         new_config = list(self.current_config)
 
-        for pos, layer in self.growth_steps[self.current_step]:
+        for step in self.growth_steps[self.current_step]:
+            pos = step[0]
+            layer = step[1:]
             new_config.insert(pos, layer)
 
         self.current_config = new_config

@@ -18,10 +18,10 @@ import torch.utils.data
 import torch.utils.data.distributed
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
+import torchvision.models as models
 
 from utils import *
-from growth_controller import GrowingVGGController
-from model import vgg16, resnet34, resnet50
+from growth_controller import GrowthController
 
 parser = argparse.ArgumentParser(description='Growing CNNs with PyTorch')
 parser.add_argument('name', type=str, help='name of experiment')
@@ -36,7 +36,7 @@ parser.add_argument('--evaluate', dest='modelPath', type=str, default=None,
                     help='evaluate model with path modelPath on validation set')
 parser.add_argument('--seed', default=None, type=int,
                     help='seed for initializing training. ')
-parser.add_argument('--gpu', default=None, type=int,
+parser.add_argument('--gpu', default=0, type=int,
                     help='GPU id to use.')
 
 args = parser.parse_args()
@@ -67,11 +67,6 @@ if args.seed is not None:
                   'which can slow down your training considerably! '
                   'You may see unexpected behavior when restarting '
                   'from checkpoints.')
-
-if args.gpu is not None:
-    warnings.warn('You have chosen a specific GPU. This will completely '
-                  'disable data parallelism.')
-    print("Use GPU: {} for training".format(args.gpu))
 
 def main():
     global args
@@ -128,21 +123,13 @@ def run_static(num_classes, args, settings, criterion, train_loader, val_loader)
     # create model
     if settings['pretrained']:
         print("=> using pre-trained model '{}'".format(settings['arch']))
-        model = eval(settings['arch'])(pretrained=True, num_classes=num_classes)
+        model = models.__dict__[settings['arch']](pretrained=True, num_classes=num_classes)
     else:
         print("=> creating model '{}'".format(settings['arch']))
-        model = eval(settings['arch'])(num_classes=num_classes)
+        model = models.__dict__[settings['arch']](num_classes=num_classes)
 
-    if args.gpu is not None:
-        torch.cuda.set_device(args.gpu)
-        model = model.cuda(args.gpu)
-    else:
-        # DataParallel will divide and allocate batch_size to all available GPUs
-        if settings['arch'].startswith('alexnet') or settings['arch'].startswith('vgg'):
-            model.features = torch.nn.DataParallel(model.features)
-            model.cuda()
-        else:
-            model = torch.nn.DataParallel(model).cuda()
+    torch.cuda.set_device(args.gpu)
+    model = model.cuda(args.gpu)
 
     # Create optimizer
     optimizer = torch.optim.SGD(model.parameters(), settings['learning_rate'],
@@ -185,12 +172,11 @@ def run_static(num_classes, args, settings, criterion, train_loader, val_loader)
     return results
 
 def run_growing(num_classes, args, settings, criterion, train_loader, val_loader):
-    initial_config = [64, 'M', 128, 'M', 256, 'M', 512, 'M', 512, 'M']
+    initial_config = [('C', 64), ('M',), ('C', 128), ('M',), ('C', 256), ('M',), ('C', 512), ('M',), ('C', 512), ('M',)]
     growth_steps = []
-    growth_steps.append([(1, 64), (4, 128), (7, 256), (10, 512), (13, 512)])
-    growth_steps.append([(8, 256), (12, 512), (16, 512)])
-    growth_controller = GrowingVGGController(initial_config, growth_steps, num_classes, settings['batch_normalization'])
-    parallel = args.gpu is None # Necessary since parallelization changes parameter names in state dict
+    growth_steps.append([(1, 'C', 64), (4, 'C', 128), (7, 'C', 256), (10, 'C', 512), (13, 'C', 512)])
+    growth_steps.append([(8, 'C', 256), (12, 'C', 512), (16, 'C', 512)])
+    growth_controller = GrowthController(initial_config, growth_steps, num_classes, settings['batch_normalization'])
     total_epoch = 0
 
     # Only evaluate model, no training
@@ -200,16 +186,11 @@ def run_growing(num_classes, args, settings, criterion, train_loader, val_loader
         total_steps = checkpoint['growth_step']
         for growth_step in range(total_steps + 1):
             if growth_step == 0:
-                model = growth_controller.step(parallel=parallel)
+                model = growth_controller.step()
             else:
-                model = growth_controller.step(model.state_dict(), parallel=parallel)
+                model = growth_controller.step(old_model=model)
 
-            if args.gpu is not None:
-                torch.cuda.set_device(args.gpu)
-                model = model.cuda(args.gpu)
-            else:
-                model.features = torch.nn.DataParallel(model.features)
-                model.cuda()
+            model = model.cuda(args.gpu)
 
         model.load_state_dict(checkpoint['state_dict'])
         validate(val_loader, model, criterion, 0, args, [], growth_step=total_steps)
@@ -222,26 +203,16 @@ def run_growing(num_classes, args, settings, criterion, train_loader, val_loader
     validate_results = []
 
     best_acc1 = 0
-    for i, growth_step in enumerate(growth_controller.growth_steps):
+    for i in range(len(growth_controller.growth_steps) + 1):
         # create model and optimizer
         print("=> creating growth iteration %d for model GrowingVGG" % i)
         if i == 0:
-            model = growth_controller.step(parallel=parallel)
+            model = growth_controller.step()
         else:
-            model = growth_controller.step(model.state_dict(), parallel=parallel)
+            model = growth_controller.step(old_model=model)
 
-        if args.gpu is not None:
-            torch.cuda.set_device(args.gpu)
-            model = model.cuda(args.gpu)
-        else:
-            # DataParallel will divide and allocate batch_size to all available GPUs
-            """if args.arch.startswith('alexnet') or args.arch.startswith('vgg'):
-                model.features = torch.nn.DataParallel(model.features)
-                model.cuda()
-            else:
-                model = torch.nn.DataParallel(model).cuda()"""
-            model.features = torch.nn.DataParallel(model.features)
-            model.cuda()
+        torch.cuda.set_device(args.gpu)
+        model = model.cuda(args.gpu)
 
         optimizer = torch.optim.SGD(model.parameters(), settings['learning_rate'],
                                     momentum=settings['momentum'],
@@ -289,8 +260,7 @@ def train(train_loader, model, criterion, optimizer, epoch, args, train_results,
         # measure data loading time
         data_time.update(time.time() - end)
 
-        if args.gpu is not None:
-            input = input.cuda(args.gpu, non_blocking=True)
+        input = input.cuda(args.gpu, non_blocking=True)
         target = target.cuda(args.gpu, non_blocking=True)
 
         # compute output
@@ -342,8 +312,7 @@ def validate(val_loader, model, criterion, epoch, args, validate_results, growth
     with torch.no_grad():
         end = time.time()
         for i, (input, target) in enumerate(val_loader):
-            if args.gpu is not None:
-                input = input.cuda(args.gpu, non_blocking=True)
+            input = input.cuda(args.gpu, non_blocking=True)
             target = target.cuda(args.gpu, non_blocking=True)
 
             # compute output
