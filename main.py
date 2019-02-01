@@ -20,7 +20,7 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.models as models
 
-from utils import *
+import utils
 from growth_controller import GrowthController
 
 parser = argparse.ArgumentParser(description='Growing CNNs with PyTorch')
@@ -132,7 +132,7 @@ def run_static(num_classes, args, settings, criterion, train_loader, val_loader)
     model = model.cuda(args.gpu)
 
     # Create optimizer
-    optimizer = torch.optim.SGD(model.parameters(), settings['learning_rate'],
+    optimizer = torch.optim.SGD(model.parameters(), settings['initial_learning_rate'],
                                momentum=settings['momentum'],
                                weight_decay=settings['weight_decay'])
 
@@ -148,7 +148,8 @@ def run_static(num_classes, args, settings, criterion, train_loader, val_loader)
 
     best_acc1 = 0
     for epoch in range(settings['epochs']):
-        adjust_learning_rate(optimizer, epoch, settings['learning_rate'])
+        if epoch > 0 and epoch % settings['lr_decay_epoch_step'] == 0:
+            utils.adjust_learning_rate(optimizer, settings['lr_decay_epoch_ratio'])
 
         # train for one epoch
         train(train_loader, model, criterion, optimizer, epoch, args, train_results)
@@ -159,7 +160,7 @@ def run_static(num_classes, args, settings, criterion, train_loader, val_loader)
         # remember best acc@1 and save checkpoint
         is_best = acc1 > best_acc1
         best_acc1 = max(acc1, best_acc1)
-        save_checkpoint(experimentDir, args.name, {
+        utils.save_checkpoint(experimentDir, args.name, {
             'epoch': epoch + 1,
             'arch': settings['arch'],
             'state_dict': model.state_dict(),
@@ -213,13 +214,20 @@ def run_growing(num_classes, args, settings, criterion, train_loader, val_loader
 
         model = model.cuda(args.gpu)
 
-        optimizer = torch.optim.SGD(model.parameters(), settings['learning_rate'],
-                                    momentum=settings['momentum'],
-                                    weight_decay=settings['weight_decay'])
+        optimizer_params = utils.get_initial_optimizer_params(model,
+                growth_controller.growth_history,
+                settings['initial_learning_rate'],
+                settings['lr_decay_growth_ratio'], 
+                i)
+        optimizer = torch.optim.SGD(optimizer_params,
+                momentum=settings['momentum'],
+                weight_decay=settings['weight_decay'])
 
         # Train current model
         for epoch in range(settings['epochs_per_step']):
-            adjust_learning_rate(optimizer, total_epoch, settings['learning_rate'])
+            if epoch > 0 and epoch % settings['lr_decay_epoch_step'] == 0:
+                utils.adjust_learning_rate(optimizer,
+                settings['lr_decay_epoch_ratio'])
 
             # train for one epoch
             train(train_loader, model, criterion, optimizer, epoch, args, train_results, growth_step=i)
@@ -230,7 +238,7 @@ def run_growing(num_classes, args, settings, criterion, train_loader, val_loader
             # remember best acc@1 and save checkpoint
             is_best = acc1 > best_acc1
             best_acc1 = max(acc1, best_acc1)
-            save_checkpoint(experimentDir, args.name, {
+            utils.save_checkpoint(experimentDir, args.name, {
                 'growth_step': i,
                 'epoch': epoch + 1,
                 'state_dict': model.state_dict(),
@@ -245,11 +253,11 @@ def run_growing(num_classes, args, settings, criterion, train_loader, val_loader
     return results
 
 def train(train_loader, model, criterion, optimizer, epoch, args, train_results, growth_step=None):
-    batch_time = AverageMeter()
-    data_time = AverageMeter()
-    losses = AverageMeter()
-    top1 = AverageMeter()
-    top5 = AverageMeter()
+    batch_time = utils.AverageMeter()
+    data_time = utils.AverageMeter()
+    losses = utils.AverageMeter()
+    top1 = utils.AverageMeter()
+    top5 = utils.AverageMeter()
 
     # switch to train mode
     model.train()
@@ -267,7 +275,7 @@ def train(train_loader, model, criterion, optimizer, epoch, args, train_results,
         loss = criterion(output, target)
 
         # measure accuracy and record loss
-        acc1, acc5 = accuracy(output, target, topk=(1, 5))
+        acc1, acc5 = utils.accuracy(output, target, topk=(1, 5))
         losses.update(loss.item(), input.size(0))
         top1.update(acc1[0], input.size(0))
         top5.update(acc5[0], input.size(0))
@@ -300,10 +308,10 @@ def train(train_loader, model, criterion, optimizer, epoch, args, train_results,
 
 
 def validate(val_loader, model, criterion, epoch, args, validate_results, growth_step=None):
-    batch_time = AverageMeter()
-    losses = AverageMeter()
-    top1 = AverageMeter()
-    top5 = AverageMeter()
+    batch_time = utils.AverageMeter()
+    losses = utils.AverageMeter()
+    top1 = utils.AverageMeter()
+    top5 = utils.AverageMeter()
 
     # switch to evaluate mode
     model.eval()
@@ -319,7 +327,7 @@ def validate(val_loader, model, criterion, epoch, args, validate_results, growth
             loss = criterion(output, target)
 
             # measure accuracy and record loss
-            acc1, acc5 = accuracy(output, target, topk=(1, 5))
+            acc1, acc5 = utils.accuracy(output, target, topk=(1, 5))
             losses.update(loss.item(), input.size(0))
             top1.update(acc1[0], input.size(0))
             top5.update(acc5[0], input.size(0))

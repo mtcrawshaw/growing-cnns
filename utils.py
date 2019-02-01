@@ -20,11 +20,27 @@ class AverageMeter(object):
         self.count += n
         self.avg = self.sum / self.count
 
-def adjust_learning_rate(optimizer, epoch, initial_lr):
-    """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-    lr = initial_lr * (0.1 ** (epoch // 30))
+def adjust_learning_rate(optimizer, lr_decay_ratio):
+    """Sets the learning rate to the initial LR decayed by lr_decay_ratio every
+    lr_decay_step epochs"""
     for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
+        param_group['lr'] *= lr_decay_ratio
+
+def get_initial_optimizer_params(model, growth_history, initial_lr,
+        lr_growth_decay, growth_step):
+    optimizer_params = []
+
+    for i, layer_step in enumerate(growth_history):
+        lr = initial_lr * (lr_growth_decay ** (growth_step - layer_step))
+        optimizer_params.append({
+            'params': model.features.__getitem__(i).parameters(),
+            'lr': lr})
+
+    classifier_lr = initial_lr * (lr_growth_decay ** growth_step)
+    optimizer_params.append({'params': model.classifier.parameters(),
+        'lr': classifier_lr})
+
+    return optimizer_params
 
 def accuracy(output, target, topk=(1,)):
     """Computes the accuracy over the k top predictions for the specified values of k"""
