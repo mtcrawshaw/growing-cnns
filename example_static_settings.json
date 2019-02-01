@@ -2,10 +2,10 @@
     "growing": false,
 
     "pretrained": false,
-    "arch": "resnet50",
+    "arch": "vgg16",
 
     "epochs": 1,
-    "batch_size": 256,
+    "batch_size": 64,
     "learning_rate": 0.01,
     "momentum": 0.9,
     "weight_decay": 1e-4,
