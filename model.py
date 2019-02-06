@@ -3,6 +3,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torchvision.models.resnet import BasicBlock, Bottleneck
 
 """
     Model
@@ -50,20 +51,29 @@ class CustomConvNet(nn.Module):
         layers = []
         in_channels = 3
         for l in cfg:
-            layer = []
+            layer = None
 
-            if l[0] == 'M':
-                layer += [nn.MaxPool2d(kernel_size=2, stride=2)]
-            elif l[0] == 'C':
+            if l[0] == 'M': # Max pooling
+                layer = nn.MaxPool2d(kernel_size=2, stride=2)
+            elif l[0] == 'C': # Convolution
                 out_channels = l[1]
                 conv2d = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
                 if batch_norm:
-                    layer += [conv2d, nn.BatchNorm2d(out_channels), nn.ReLU(inplace=True)]
+                    layer_list = [conv2d, nn.BatchNorm2d(out_channels), nn.ReLU(inplace=True)]
                 else:
-                    layer += [conv2d, nn.ReLU(inplace=True)]
+                    layer_list = [conv2d, nn.ReLU(inplace=True)]
+                layer = nn.Sequential(*layer_list)
+                in_channels = out_channels
+            elif l[0] == 'R_Basic': # Resnet basic
+                out_channels = l[1]
+                layer = BasicBlock(in_channels, out_channels)   # From ResNet
+                in_channels = out_channels
+            elif l[0] == 'R_Bottleneck': # Resnet bottleneck
+                out_channels = l[1]
+                layer = Bottleneck(in_channels, out_channels) # From Resnet
                 in_channels = out_channels
 
-            layers.append(nn.Sequential(*layer))
+            layers.append(layer)
 
         return nn.Sequential(*layers)
 

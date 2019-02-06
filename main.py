@@ -173,10 +173,30 @@ def run_static(num_classes, args, settings, criterion, train_loader, val_loader)
     return results
 
 def run_growing(num_classes, args, settings, criterion, train_loader, val_loader):
-    initial_config = [('C', 64), ('M',), ('C', 128), ('M',), ('C', 256), ('M',), ('C', 512), ('M',), ('C', 512), ('M',)]
+    """initial_config = [('C', 64), ('M',), ('C', 128), ('M',), ('C', 256), ('M',), ('C', 512), ('M',), ('C', 512), ('M',)]
     growth_steps = []
     growth_steps.append([(1, 'C', 64), (4, 'C', 128), (7, 'C', 256), (10, 'C', 512), (13, 'C', 512)])
     growth_steps.append([(8, 'C', 256), (12, 'C', 512), (16, 'C', 512)])
+    """
+    """initial_config = [('C', 64), ('R_Basic', 64), ('M',), ('C', 128), ('R_Basic', 128), ('M',), ('C', 256),
+                        ('R_Basic', 256), ('M',), ('C', 512), ('R_Basic', 512), ('M',), 
+                        ('C', 512), ('R_Basic', 512), ('M',)]
+    growth_steps = []
+    growth_steps.append([(2, 'R_Basic', 64), (6, 'R_Basic', 128), (10,
+                            'R_Basic', 256), (14, 'R_Basic', 512), (18, 'R_Basic', 512)])
+    growth_steps.append([(3, 'R_Basic', 64), (8, 'R_Basic', 128), (13,
+                            'R_Basic', 256), (18, 'R_Basic', 512), (23,
+                            'R_Basic', 512)])
+    """
+    initial_config = [('C', 64), ('R_Bottleneck', 64), ('M',), ('C', 128), ('R_Bottleneck', 128), ('M',),
+                        ('C', 256), ('R_Bottleneck', 256), ('M',), ('C', 512), ('R_Bottleneck', 512), ('M',), 
+                        ('C', 512), ('R_Bottleneck', 512), ('M',)]
+    growth_steps = []
+    growth_steps.append([(2, 'R_Bottleneck', 64), (6, 'R_Bottleneck', 128), (10,
+                            'R_Bottleneck', 256), (14, 'R_Bottleneck', 512), (18, 'R_Bottleneck', 512)])
+    growth_steps.append([(3, 'R_Bottleneck', 64), (8, 'R_Bottleneck', 128), (13,
+                            'R_Bottleneck', 256), (18, 'R_Bottleneck', 512), (23,
+                            'R_Bottleneck', 512)])
     growth_controller = GrowthController(initial_config, growth_steps, num_classes, settings['batch_normalization'])
     total_epoch = 0
 
