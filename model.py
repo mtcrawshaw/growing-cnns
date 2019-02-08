@@ -66,7 +66,17 @@ class CustomConvNet(nn.Module):
                 in_channels = out_channels
             elif l[0] == 'R_Basic': # Resnet basic
                 out_channels = l[1]
-                layer = BasicBlock(in_channels, out_channels)   # From ResNet
+
+                if out_channels == in_channels:
+                    layer = BasicBlock(in_channels, out_channels)   # From ResNet
+                else:
+                    downsample = nn.Sequential(nn.Conv2d(in_channels,
+                        out_channels, kernel_size=1, bias=False),
+                        nn.BatchNorm2d(out_channels)
+                    )
+                    layer = BasicBlock(in_channels, out_channels,
+                            downsample=downsample)
+
                 in_channels = out_channels
             elif l[0] == 'R_Bottleneck': # Resnet bottleneck
                 out_channels = l[1]
