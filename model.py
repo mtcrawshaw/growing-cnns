@@ -81,17 +81,22 @@ class CustomConvNet(nn.Module):
                 out_channels = l[1]
 
                 downsample = None
-                if out_channels * Bottleneck.expansion != in_channels:
+                if out_channels != in_channels:
                     downsample = nn.Sequential(
                         nn.Conv2d(in_channels,
-                            out_channels * Bottleneck.expansion, kernel_size=1,
+                            out_channels, kernel_size=1,
                             bias=False),
-                        nn.BatchNorm2d(out_channels * Bottleneck.expansion))
+                        nn.BatchNorm2d(out_channels))
 
-                layer = Bottleneck(in_channels, out_channels,
-                            downsample=downsample)
+                if out_channels % Bottleneck.expansion != 0:
+                    raise ValueError('Number of out_channels %d must be a' +
+                        'of Bottleneck.expansion %d.' % (out_channels,
+                        Bottleneck.expansion))
 
-                in_channels = out_channels * Bottleneck.expansion
+                layer = Bottleneck(in_channels, out_channels //
+                        Bottleneck.expansion, downsample=downsample)
+
+                in_channels = out_channels
 
             layers.append(layer)
 
