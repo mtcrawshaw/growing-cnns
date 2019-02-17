@@ -14,7 +14,7 @@ class CustomConvNet(nn.Module):
     def __init__(self, config, num_classes=1000, init_weights=True, batch_norm=True):
         super(CustomConvNet, self).__init__()
 
-        self.features = CustomConvNet._make_features(config, batch_norm=batch_norm)
+        self.features = make_features(config, batch_norm=batch_norm)
         self.classifier = nn.Sequential(
             nn.Linear(512, 4096), # 512 -> 512 * 7 * 7 for imagenet
             nn.ReLU(True),
@@ -46,60 +46,79 @@ class CustomConvNet(nn.Module):
                 nn.init.normal_(m.weight, 0, 0.01)
                 nn.init.constant_(m.bias, 0)
 
-    @staticmethod
-    def _make_features(cfg, batch_norm=True):
-        layers = []
-        in_channels = 3
-        for l in cfg:
-            layer = None
 
-            if l[0] == 'M': # Max pooling
-                layer = nn.MaxPool2d(kernel_size=2, stride=2)
-            elif l[0] == 'C': # Convolution
-                out_channels = l[1]
-                conv2d = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
-                if batch_norm:
-                    layer_list = [conv2d, nn.BatchNorm2d(out_channels), nn.ReLU(inplace=True)]
-                else:
-                    layer_list = [conv2d, nn.ReLU(inplace=True)]
-                layer = nn.Sequential(*layer_list)
-                in_channels = out_channels
-            elif l[0] == 'R_Basic': # Resnet basic
-                out_channels = l[1]
+def make_features(cfg, batch_norm=True):
+    layers = []
+    in_channels = 3
+    for l in cfg:
+        layer = None
 
-                downsample = None
-                if out_channels != in_channels:
-                    downsample = nn.Sequential(nn.Conv2d(in_channels,
-                        out_channels, kernel_size=1, bias=False),
-                        nn.BatchNorm2d(out_channels))
+        if l[0] == 'M': # Max pooling
 
-                layer = BasicBlock(in_channels, out_channels,
-                            downsample=downsample)
+            layer = nn.MaxPool2d(kernel_size=2, stride=2)
 
-                in_channels = out_channels
-            elif l[0] == 'R_Bottleneck': # Resnet bottleneck
-                out_channels = l[1]
+        elif l[0] == 'C': # Convolution
+            
+            out_channels = l[1]
+            layer = make_layer_C(in_channels, out_channels, batch_norm)
+            in_channels = out_channels
 
-                downsample = None
-                if out_channels != in_channels:
-                    downsample = nn.Sequential(
-                        nn.Conv2d(in_channels,
-                            out_channels, kernel_size=1,
-                            bias=False),
-                        nn.BatchNorm2d(out_channels))
+        elif l[0] == 'R_Basic': # Resnet basic
 
-                if out_channels % Bottleneck.expansion != 0:
-                    raise ValueError('Number of out_channels %d must be a' +
-                        'of Bottleneck.expansion %d.' % (out_channels,
-                        Bottleneck.expansion))
+            out_channels = l[1]
+            layer = make_layer_R_Basic(in_channels, out_channels, batch_norm)
+            in_channels = out_channels
 
-                layer = Bottleneck(in_channels, out_channels //
-                        Bottleneck.expansion, downsample=downsample)
+        elif l[0] == 'R_Bottleneck': # Resnet bottleneck
 
-                in_channels = out_channels
+            out_channels = l[1]
+            layer = make_layer_R_Bottleneck(in_channels, out_channels,
+                        batch_norm)
+            in_channels = out_channels
 
-            layers.append(layer)
+        layers.append(layer)
 
-        return nn.Sequential(*layers)
+    return nn.Sequential(*layers)
 
+
+def make_layer_M():
+    return nn.MaxPool2d(kernel_size=2, stride=2)
+
+def make_layer_C(in_channels, out_channels, batch_norm):
+    conv2d = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
+
+    if batch_norm:
+        layer_list = [conv2d, nn.BatchNorm2d(out_channels), nn.ReLU(inplace=True)]
+    else:
+        layer_list = [conv2d, nn.ReLU(inplace=True)]
+
+    return nn.Sequential(*layer_list)
+
+def make_layer_R_Basic(in_channels, out_channels, batch_norm):
+    downsample = None
+
+    if out_channels != in_channels:
+        downsample = nn.Sequential(nn.Conv2d(in_channels,
+            out_channels, kernel_size=1, bias=False),
+            nn.BatchNorm2d(out_channels))
+
+    return BasicBlock(in_channels, out_channels,
+                downsample=downsample)
+
+def make_layer_R_Bottleneck(in_channels, out_channels, batch_norm):
+    downsample = None
+    if out_channels != in_channels:
+        downsample = nn.Sequential(
+            nn.Conv2d(in_channels,
+                out_channels, kernel_size=1,
+                bias=False),
+            nn.BatchNorm2d(out_channels))
+
+    if out_channels % Bottleneck.expansion != 0:
+        raise ValueError('Number of out_channels %d must be a' +
+            'multiple of Bottleneck.expansion %d.' % (out_channels,
+            Bottleneck.expansion))
+
+    return Bottleneck(in_channels, out_channels //
+                Bottleneck.expansion, downsample=downsample)
 
