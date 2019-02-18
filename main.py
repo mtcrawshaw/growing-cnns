@@ -23,53 +23,35 @@ import torchvision.models as models
 import utils
 from growth_controller import GrowthController
 
-parser = argparse.ArgumentParser(description='Growing CNNs with PyTorch')
-parser.add_argument('name', type=str, help='name of experiment')
-parser.add_argument('settings_file', type=str, help='name of settings file '
-                    'containing hyperparameter and training settings. Example '
-                    'settings file is example_growing_settings.json')
-parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
-                    help='number of data loading workers (default: 4)')
-parser.add_argument('-p', '--print-freq', default=10, type=int,
-                    metavar='N', help='print frequency (default: 10)')
-parser.add_argument('--evaluate', dest='modelPath', type=str, default=None,
-                    help='evaluate model with path modelPath on validation set')
-parser.add_argument('--seed', default=None, type=int,
-                    help='seed for initializing training. ')
-parser.add_argument('--gpu', default=0, type=int,
-                    help='GPU id to use.')
 
-args = parser.parse_args()
+def main(args):
+    with open(args.settings_file, 'r') as settingsFile:
+        settings = json.load(settingsFile)
+    experiment_type = 'growing' if settings['growing'] else 'static'
+    
+    experiments_dir = os.path.join(os.path.dirname(__file__), 'experiments', experiment_type)
+    if not args.quiet and not os.path.isdir(experiments_dir):
+        os.makedirs(experiments_dir)
+    
+    experimentDir = os.path.join(experiments_dir, args.name)
+    if os.path.isdir(experimentDir) and not args.quiet and args.modelPath is None:
+            print("Experiment with name '%s' already exists!" % args.name)
+            exit()
 
-with open(args.settings_file, 'r') as settingsFile:
-    settings = json.load(settingsFile)
-experiment_type = 'growing' if settings['growing'] else 'static'
-
-experiments_dir = os.path.join(os.path.dirname(__file__), 'experiments', experiment_type)
-if not os.path.isdir(experiments_dir):
-    os.makedirs(experiments_dir)
-
-experimentDir = os.path.join(experiments_dir, args.name)
-if os.path.isdir(experimentDir) and args.modelPath is None:
-        print("Experiment with name '%s' already exists!" % args.name)
-        exit()
-if args.modelPath is None:
-    os.makedirs(experimentDir)
-    permanent_settings_file = os.path.join(experimentDir, args.name + '_settings.json')
-    shutil.copyfile(args.settings_file, permanent_settings_file)
-
-if args.seed is not None:
-    random.seed(args.seed)
-    torch.manual_seed(args.seed)
-    cudnn.deterministic = True
-    warnings.warn('You have chosen to seed training. '
-                  'This will turn on the CUDNN deterministic setting, '
-                  'which can slow down your training considerably! '
-                  'You may see unexpected behavior when restarting '
-                  'from checkpoints.')
-
-def main():
-    global args
+    if args.modelPath is None and not args.quiet:
+        os.makedirs(experimentDir)
+        permanent_settings_file = os.path.join(experimentDir, args.name + '_settings.json')
+        shutil.copyfile(args.settings_file, permanent_settings_file)
+    
+    if args.seed is not None:
+        random.seed(args.seed)
+        torch.manual_seed(args.seed)
+        cudnn.deterministic = True
+        warnings.warn('You have chosen to seed training. '
+                      'This will turn on the CUDNN deterministic setting, '
+                      'which can slow down your training considerably! '
+                      'You may see unexpected behavior when restarting '
+                      'from checkpoints.')
 
     num_classes = 10 # Temporary
     cudnn.benchmark = True
@@ -114,8 +96,8 @@ def main():
     else:
         results = run_static(num_classes, args, settings, criterion, train_loader, val_loader)
 
-    # Write out results to log, if this is a training session
-    if args.modelPath is None:
+    # Write out results to log if this is a training session and not quiet mode
+    if args.modelPath is None and not args.quiet:
         logPath = os.path.join(experimentDir, '%s.log' % args.name)
         with open(logPath, 'w') as logFile:
             json.dump(results, logFile, indent=4)
@@ -160,40 +142,32 @@ def run_static(num_classes, args, settings, criterion, train_loader, val_loader)
         # remember best acc@1 and save checkpoint
         is_best = acc1 > best_acc1
         best_acc1 = max(acc1, best_acc1)
-        utils.save_checkpoint(experimentDir, args.name, {
-            'epoch': epoch + 1,
-            'arch': settings['arch'],
-            'state_dict': model.state_dict(),
-            'best_acc1': best_acc1,
-            'optimizer': optimizer.state_dict(),
-        }, is_best)
+        if not args.quiet:
+            utils.save_checkpoint(experimentDir, args.name, {
+                'epoch': epoch + 1,
+                'arch': settings['arch'],
+                'state_dict': model.state_dict(),
+                'best_acc1': best_acc1,
+                'optimizer': optimizer.state_dict(),
+            }, is_best)
 
     results['train_results'] = list(train_results)
     results['validate_results'] = list(validate_results)
     return results
 
 def run_growing(num_classes, args, settings, criterion, train_loader, val_loader):
-    initial_config = [('C', 64), ('M',), ('C', 128), ('R_Bottleneck', 128), 
+    """initial_config = [('C', 64), ('M',), ('C', 128), ('R_Bottleneck', 128), 
             ('C', 128), ('M',), ('C', 256), ('M',), ('C', 512), ('M',), 
             ('C', 512), ('M',)]
     growth_steps = []
     growth_steps.append([(1, 'C', 64), (6, 'C', 128), (9, 'C', 256), (12, 'C', 512), (15, 'C', 512)])
     growth_steps.append([(10, 'C', 256), (14, 'C', 512), (18, 'C', 512)])
-    
-    """initial_config = [('C', 64), ('R_Basic', 64), ('M',), ('R_Basic', 128),
-            ('R_Basic', 128), ('M',), ('R_Basic', 256), ('R_Basic', 256), 
-            ('M',), ('R_Basic', 512), ('R_Basic', 512), ('M',), ('R_Basic', 512),
-            ('R_Basic', 512), ('M',)]
-    growth_steps = []
-    growth_steps.append([(2, 'R_Basic', 64), (6, 'R_Basic', 128), (10,
-                            'R_Basic', 256), (14, 'R_Basic', 512), (18, 'R_Basic', 512)])
-    growth_steps.append([(3, 'R_Basic', 64), (8, 'R_Basic', 128), (13,
-                            'R_Basic', 256), (18, 'R_Basic', 512), (23,
-                            'R_Basic', 512)])
     """
     
-    """initial_config = [('C', 64), ('R_Bottleneck', 64), ('M',), ('C', 128), ('R_Bottleneck', 128), ('M',),
-                        ('C', 256), ('R_Bottleneck', 256), ('M',), ('C', 512), ('R_Bottleneck', 512), ('M',), 
+    initial_config = [('C', 64), ('R_Bottleneck', 64), ('M',), ('C', 128),
+            ('R_Bottleneck', 128), ('M',),
+                        ('C', 256), ('R_Bottleneck', 256), ('M',), ('C', 512),
+                        ('R_Bottleneck', 512), ('M',), 
                         ('C', 512), ('R_Bottleneck', 512), ('M',)]
     growth_steps = []
     growth_steps.append([(2, 'R_Bottleneck', 64), (6, 'R_Bottleneck', 128), (10,
@@ -201,7 +175,7 @@ def run_growing(num_classes, args, settings, criterion, train_loader, val_loader
     growth_steps.append([(3, 'R_Bottleneck', 64), (8, 'R_Bottleneck', 128), (13,
                             'R_Bottleneck', 256), (18, 'R_Bottleneck', 512), (23,
                             'R_Bottleneck', 512)])
-    """
+    
     
     growth_controller = GrowthController(initial_config, growth_steps, num_classes, settings['batch_normalization'])
     total_epoch = 0
@@ -264,13 +238,14 @@ def run_growing(num_classes, args, settings, criterion, train_loader, val_loader
             # remember best acc@1 and save checkpoint
             is_best = acc1 > best_acc1
             best_acc1 = max(acc1, best_acc1)
-            utils.save_checkpoint(experimentDir, args.name, {
-                'growth_step': i,
-                'epoch': epoch + 1,
-                'state_dict': model.state_dict(),
-                'best_acc1': best_acc1,
-                'optimizer' : optimizer.state_dict(),
-            }, is_best)
+            if not args.quiet:
+                utils.save_checkpoint(experimentDir, args.name, {
+                    'growth_step': i,
+                    'epoch': epoch + 1,
+                    'state_dict': model.state_dict(),
+                    'best_acc1': best_acc1,
+                    'optimizer' : optimizer.state_dict(),
+                }, is_best)
 
             total_epoch += 1
 
@@ -382,5 +357,26 @@ def validate(val_loader, model, criterion, epoch, args, validate_results, growth
     return top1.avg
 
 
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Growing CNNs with PyTorch')
+    parser.add_argument('name', type=str, help='name of experiment')
+    parser.add_argument('settings_file', type=str, help='name of settings file '
+                        'containing hyperparameter and training settings. Example '
+                        'settings file is example_growing_settings.json')
+    parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
+                        help='number of data loading workers (default: 4)')
+    parser.add_argument('-p', '--print-freq', default=10, type=int,
+                        metavar='N', help='print frequency (default: 10)')
+    parser.add_argument('--evaluate', dest='modelPath', type=str, default=None,
+                        help='evaluate model with path modelPath on validation set')
+    parser.add_argument('--seed', default=None, type=int,
+                        help='seed for initializing training. ')
+    parser.add_argument('--gpu', default=0, type=int,
+                        help='GPU id to use.')
+    parser.add_argument('--quiet', dest='quiet', default=False,
+                        action='store_true', help='whether or not to save a' +
+                        'results log and copy of settings file.')
+    
+    args = parser.parse_args()
+    
+    main(args)
