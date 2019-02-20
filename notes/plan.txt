@@ -1,0 +1,26 @@
+Features:
+3 point growth methods (options: vanilla, freeze old layers for a time, different learning rates for old and new layers, and sliding weighted average for methods 2, 3)
+1 network growth method for point method 1, 3 network growth methods for point method 2, 2 network growth methods for point method 3
+Convolution, Resnet basic, Resnet bottleneck, Densenet, Inception module
+Dropfilter, Dropblock, stochastic depth, drop path for option 3
+Early stopping, fixed number of epochs, ?
+
+Order:
+Point growth methods (only vanilla)
+Network growth methods
+Stopping criteria
+Add Densenet block and inception module as blocks
+ImageNet + other datasets
+Test over regularization, optimizers, hyperparameters
+
+Cards:
+Change static training to use custom architecture
+Modify growth controller to use adjacency matrix
+Remove custom growth steps for point growth method 1
+Remove different learning rates for old and new layers (Finish point growth method 1 vanilla)
+Network growth method for point growth method 1
+Test growth method 1
+
+
+Add ImageNet + other datasets
+Parallelize across multiple GPUs
