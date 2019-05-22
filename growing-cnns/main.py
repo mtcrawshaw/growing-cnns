@@ -30,7 +30,7 @@ def main(args):
         settings = json.load(settingsFile)
     experiment_type = 'growing' if settings['growing'] else 'static'
     
-    experiments_dir = os.path.join(os.path.dirname(__file__), 'experiments', experiment_type)
+    experiments_dir = os.path.join(os.path.dirname(__file__), 'experiments')
     if not args.quiet and not os.path.isdir(experiments_dir):
         os.makedirs(experiments_dir)
     
@@ -80,8 +80,8 @@ def main(args):
         transforms.Normalize(IMAGENET_MEANS, IMAGENET_STDS),
     ])
 
-    train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
-    val_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_val)
+    train_dataset = datasets.CIFAR10(root='../data', train=True, download=True, transform=transform_train)
+    val_dataset = datasets.CIFAR10(root='../data', train=False, download=True, transform=transform_val)
 
     train_sampler = None
 
