@@ -23,6 +23,7 @@ import torchvision.models as models
 import utils
 from growth_controller import GrowthController
 
+experimentDir = None
 
 def main(args):
     with open(args.settings_file, 'r') as settingsFile:
@@ -33,6 +34,7 @@ def main(args):
     if not args.quiet and not os.path.isdir(experiments_dir):
         os.makedirs(experiments_dir)
     
+    global experimentDir
     experimentDir = os.path.join(experiments_dir, args.name)
     if os.path.isdir(experimentDir) and not args.quiet and args.modelPath is None:
             print("Experiment with name '%s' already exists!" % args.name)
@@ -175,7 +177,6 @@ def run_growing(num_classes, args, settings, criterion, train_loader, val_loader
     growth_steps.append([(3, 'R_Bottleneck', 64), (8, 'R_Bottleneck', 128), (13,
                             'R_Bottleneck', 256), (18, 'R_Bottleneck', 512), (23,
                             'R_Bottleneck', 512)])
-    
     
     growth_controller = GrowthController(initial_config, growth_steps, num_classes, settings['batch_normalization'])
     total_epoch = 0
