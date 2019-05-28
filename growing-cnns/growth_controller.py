@@ -84,6 +84,10 @@ class GrowthController():
         self.current_step += 1
         return new_model
 
+    """
+    Changes self.current_config to reflect one growth step based on
+    self.growth_steps.
+    """
     def _grow_current_config(self):
         new_config = list(self.current_config)
 

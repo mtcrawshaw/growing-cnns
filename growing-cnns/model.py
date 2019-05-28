@@ -46,7 +46,10 @@ class CustomConvNet(nn.Module):
                 nn.init.normal_(m.weight, 0, 0.01)
                 nn.init.constant_(m.bias, 0)
 
-
+"""
+    Produces a pytorch Module for a network architecture described by
+    the argument cfg.
+"""
 def make_features(cfg, batch_norm=True):
     layers = []
     in_channels = 3
@@ -81,6 +84,9 @@ def make_features(cfg, batch_norm=True):
     return nn.Sequential(*layers)
 
 
+"""
+    Helper functions for make_features
+"""
 def make_layer_M():
     return nn.MaxPool2d(kernel_size=2, stride=2)
 

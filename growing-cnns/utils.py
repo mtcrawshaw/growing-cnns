@@ -20,12 +20,19 @@ class AverageMeter(object):
         self.count += n
         self.avg = self.sum / self.count
 
+"""
+    Sets the learning rate to the initial LR decayed by lr_decay_ratio every
+    lr_decay_step epochs
+"""
 def adjust_learning_rate(optimizer, lr_decay_ratio):
-    """Sets the learning rate to the initial LR decayed by lr_decay_ratio every
-    lr_decay_step epochs"""
     for param_group in optimizer.param_groups:
         param_group['lr'] *= lr_decay_ratio
 
+"""
+    Returns optimizer parameters for the beginning of each growth step. The
+    learning rate for a given layer decreases by a factor of 10 for each growth
+    step that has passed since that layer was introduced to the network.
+"""
 def get_initial_optimizer_params(model, growth_history, initial_lr,
         lr_growth_decay, growth_step):
     optimizer_params = []

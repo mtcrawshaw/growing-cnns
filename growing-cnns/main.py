@@ -26,25 +26,31 @@ from growth_controller import GrowthController
 experimentDir = None
 
 def main(args):
+
+    # Load settings file
     with open(args.settings_file, 'r') as settingsFile:
         settings = json.load(settingsFile)
     experiment_type = 'growing' if settings['growing'] else 'static'
     
+    # Create experiments directory if it doesn't already exist
     experiments_dir = os.path.join(os.path.dirname(__file__), 'experiments')
     if not args.quiet and not os.path.isdir(experiments_dir):
         os.makedirs(experiments_dir)
-    
+
+    # Create experiment directory to store results and model, if args.quiet
+    # is false and we are training, not evaluating a model.
     global experimentDir
     experimentDir = os.path.join(experiments_dir, args.name)
     if os.path.isdir(experimentDir) and not args.quiet and args.modelPath is None:
+        if os.path.isdir(experimentDir):
             print("Experiment with name '%s' already exists!" % args.name)
             exit()
+        else:
+            os.makedirs(experimentDir)
+            permanent_settings_file = os.path.join(experimentDir, args.name + '_settings.json')
+            shutil.copyfile(args.settings_file, permanent_settings_file)
 
-    if args.modelPath is None and not args.quiet:
-        os.makedirs(experimentDir)
-        permanent_settings_file = os.path.join(experimentDir, args.name + '_settings.json')
-        shutil.copyfile(args.settings_file, permanent_settings_file)
-    
+    # Set seed and other cuda settings
     if args.seed is not None:
         random.seed(args.seed)
         torch.manual_seed(args.seed)
@@ -54,18 +60,18 @@ def main(args):
                       'which can slow down your training considerably! '
                       'You may see unexpected behavior when restarting '
                       'from checkpoints.')
-
     num_classes = 10 # Temporary
     cudnn.benchmark = True
     torch.cuda.set_device(args.gpu)
 
-    # define loss function (criterion) and optimizer
+    # Define loss function (criterion) and optimizer
     criterion = nn.CrossEntropyLoss().cuda(args.gpu)
 
     # Data loading
     IMAGENET_MEANS = (0.485, 0.456, 0.406)
     IMAGENET_STDS = (0.229, 0.224, 0.225)
 
+    # Data transformations
     transform_train = transforms.Compose([
         #transforms.Resize(256),      # Note: These commented transformations should be added for imagenet when the time comes.
         #transforms.RandomCrop(224),
@@ -80,6 +86,7 @@ def main(args):
         transforms.Normalize(IMAGENET_MEANS, IMAGENET_STDS),
     ])
 
+    # Load dataset
     train_dataset = datasets.CIFAR10(root='../data', train=True, download=True, transform=transform_train)
     val_dataset = datasets.CIFAR10(root='../data', train=False, download=True, transform=transform_val)
 
@@ -88,11 +95,11 @@ def main(args):
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=settings['batch_size'], shuffle=(train_sampler is None),
         num_workers=args.workers, pin_memory=True, sampler=train_sampler)
-
     val_loader = torch.utils.data.DataLoader(
         val_dataset, batch_size=settings['batch_size'], shuffle=False,
         num_workers=args.workers, pin_memory=True)
 
+    # Run training/evaluation
     if experiment_type == "growing":
         results = run_growing(num_classes, args, settings, criterion, train_loader, val_loader)
     else:
@@ -105,7 +112,8 @@ def main(args):
             json.dump(results, logFile, indent=4)
 
 def run_static(num_classes, args, settings, criterion, train_loader, val_loader):
-    # create model
+
+    # Create model
     if settings['pretrained']:
         print("=> using pre-trained model '{}'".format(settings['arch']))
         model = models.__dict__[settings['arch']](pretrained=True, num_classes=num_classes)
@@ -130,18 +138,19 @@ def run_static(num_classes, args, settings, criterion, train_loader, val_loader)
     train_results = []
     validate_results = []
 
+    # Training loop
     best_acc1 = 0
     for epoch in range(settings['epochs']):
         if epoch > 0 and epoch % settings['lr_decay_epoch_step'] == 0:
             utils.adjust_learning_rate(optimizer, settings['lr_decay_epoch_ratio'])
 
-        # train for one epoch
+        # Train for one epoch
         train(train_loader, model, criterion, optimizer, epoch, args, train_results)
 
-        # evaluate on validation set
+        # Evaluate on validation set
         acc1 = validate(val_loader, model, criterion, epoch, args, validate_results)
 
-        # remember best acc@1 and save checkpoint
+        # Remember best acc@1 and save checkpoint
         is_best = acc1 > best_acc1
         best_acc1 = max(acc1, best_acc1)
         if not args.quiet:
@@ -178,6 +187,7 @@ def run_growing(num_classes, args, settings, criterion, train_loader, val_loader
                             'R_Bottleneck', 256), (18, 'R_Bottleneck', 512), (23,
                             'R_Bottleneck', 512)])
     
+    # Create growth controller
     growth_controller = GrowthController(initial_config, growth_steps, num_classes, settings['batch_normalization'])
     total_epoch = 0
 
@@ -204,10 +214,12 @@ def run_growing(num_classes, args, settings, criterion, train_loader, val_loader
     train_results = []
     validate_results = []
 
+    # Outer training loop
     best_acc1 = 0
     for i in range(len(growth_controller.growth_steps) + 1):
-        # create model and optimizer
-        print("=> creating growth iteration %d for model GrowingVGG" % i)
+
+        # Create model and optimizer
+        print("=> creating growth iteration %d for model" % i)
         if i == 0:
             model = growth_controller.step()
         else:
@@ -224,7 +236,7 @@ def run_growing(num_classes, args, settings, criterion, train_loader, val_loader
                 momentum=settings['momentum'],
                 weight_decay=settings['weight_decay'])
 
-        # Train current model
+        # Inner training loop
         for epoch in range(settings['epochs_per_step']):
             if epoch > 0 and epoch % settings['lr_decay_epoch_step'] == 0:
                 utils.adjust_learning_rate(optimizer,
