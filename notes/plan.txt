@@ -1,5 +1,4 @@
 Cards:
-- Add some fucken comments
 - Remove custom configuration from architecture specification (no growth speed parameter)
 - Unit test case for growth step
 - Add growth speed parameter
@@ -12,6 +11,7 @@ Cards:
 Future stuff:
 Add ImageNet + other datasets
 Parallelize across multiple GPUs
+Add different block types
 
 Features:
 3 point growth methods (options: vanilla, freeze old layers for a time, different learning rates for old and new layers, and sliding weighted average for methods 2, 3)
