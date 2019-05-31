@@ -6,6 +6,7 @@ import warnings
 import sys
 import json
 import shutil
+import importlib
 
 import torch
 import torch.nn as nn
@@ -22,6 +23,11 @@ import torchvision.models as models
 
 import utils
 from growth_controller import GrowthController
+
+# Import small dataset
+sys.path.append('../data')
+cifarSmall = importlib.import_module('cifarSmall')
+CIFARSmall = cifarSmall.CIFARSmall
 
 experimentDir = None
 
@@ -41,7 +47,7 @@ def main(args):
     # is false and we are training, not evaluating a model.
     global experimentDir
     experimentDir = os.path.join(experiments_dir, args.name)
-    if os.path.isdir(experimentDir) and not args.quiet and args.modelPath is None:
+    if not args.quiet and args.modelPath is None:
         if os.path.isdir(experimentDir):
             print("Experiment with name '%s' already exists!" % args.name)
             exit()
@@ -87,8 +93,12 @@ def main(args):
     ])
 
     # Load dataset
-    train_dataset = datasets.CIFAR10(root='../data', train=True, download=True, transform=transform_train)
-    val_dataset = datasets.CIFAR10(root='../data', train=False, download=True, transform=transform_val)
+    if not args.small:
+        train_dataset = datasets.CIFAR10(root='../data', train=True, download=True, transform=transform_train)
+        val_dataset = datasets.CIFAR10(root='../data', train=False, download=True, transform=transform_val)
+    else:
+        train_dataset = CIFARSmall(root='../data', train=True, transform=transform_train)
+        val_dataset = CIFARSmall(root='../data', train=False, transform=transform_val)
 
     train_sampler = None
 
@@ -167,28 +177,9 @@ def run_static(num_classes, args, settings, criterion, train_loader, val_loader)
     return results
 
 def run_growing(num_classes, args, settings, criterion, train_loader, val_loader):
-    """initial_config = [('C', 64), ('M',), ('C', 128), ('R_Bottleneck', 128), 
-            ('C', 128), ('M',), ('C', 256), ('M',), ('C', 512), ('M',), 
-            ('C', 512), ('M',)]
-    growth_steps = []
-    growth_steps.append([(1, 'C', 64), (6, 'C', 128), (9, 'C', 256), (12, 'C', 512), (15, 'C', 512)])
-    growth_steps.append([(10, 'C', 256), (14, 'C', 512), (18, 'C', 512)])
-    """
-    
-    initial_config = [('C', 64), ('R_Bottleneck', 64), ('M',), ('C', 128),
-            ('R_Bottleneck', 128), ('M',),
-                        ('C', 256), ('R_Bottleneck', 256), ('M',), ('C', 512),
-                        ('R_Bottleneck', 512), ('M',), 
-                        ('C', 512), ('R_Bottleneck', 512), ('M',)]
-    growth_steps = []
-    growth_steps.append([(2, 'R_Bottleneck', 64), (6, 'R_Bottleneck', 128), (10,
-                            'R_Bottleneck', 256), (14, 'R_Bottleneck', 512), (18, 'R_Bottleneck', 512)])
-    growth_steps.append([(3, 'R_Bottleneck', 64), (8, 'R_Bottleneck', 128), (13,
-                            'R_Bottleneck', 256), (18, 'R_Bottleneck', 512), (23,
-                            'R_Bottleneck', 512)])
     
     # Create growth controller
-    growth_controller = GrowthController(initial_config, growth_steps, num_classes, settings['batch_normalization'])
+    growth_controller = GrowthController(3, num_classes, settings['batch_normalization'])
     total_epoch = 0
 
     # Only evaluate model, no training
@@ -216,7 +207,7 @@ def run_growing(num_classes, args, settings, criterion, train_loader, val_loader
 
     # Outer training loop
     best_acc1 = 0
-    for i in range(len(growth_controller.growth_steps) + 1):
+    for i in range(growth_controller.growth_steps):
 
         # Create model and optimizer
         print("=> creating growth iteration %d for model" % i)
@@ -389,6 +380,9 @@ if __name__ == "__main__":
     parser.add_argument('--quiet', dest='quiet', default=False,
                         action='store_true', help='whether or not to save a' +
                         'results log and copy of settings file.')
+    parser.add_argument('--small', dest='small', default=False,
+                        action='store_true', help='whether or not to use '
+                        ' small version of dataset')
     
     args = parser.parse_args()
     

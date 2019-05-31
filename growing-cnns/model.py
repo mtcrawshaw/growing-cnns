@@ -11,12 +11,15 @@ from torchvision.models.resnet import BasicBlock, Bottleneck
 
 class CustomConvNet(nn.Module):
 
-    def __init__(self, config, num_classes=1000, init_weights=True, batch_norm=True):
+    def __init__(self, initial_channels=64, max_pools=5, conv_per_max_pool=2,
+            num_classes=1000, init_weights=True, batch_norm=True):
         super(CustomConvNet, self).__init__()
 
-        self.features = make_features(config, batch_norm=batch_norm)
+        self.features = make_features(initial_channels, max_pools,
+                conv_per_max_pool, batch_norm=batch_norm)
         self.classifier = nn.Sequential(
-            nn.Linear(512, 4096), # 512 -> 512 * 7 * 7 for imagenet
+            # This hidden size may have to change for imagenet
+            nn.Linear(512, 4096), 
             nn.ReLU(True),
             nn.Dropout(),
             nn.Linear(4096, 4096), 
@@ -50,36 +53,41 @@ class CustomConvNet(nn.Module):
     Produces a pytorch Module for a network architecture described by
     the argument cfg.
 """
-def make_features(cfg, batch_norm=True):
+def make_features(initial_channels, max_pools, conv_per_max_pool,
+        batch_norm=True):
     layers = []
     in_channels = 3
-    for l in cfg:
-        layer = None
 
-        if l[0] == 'M': # Max pooling
+    # Build up list of layers
+    out_channels = initial_channels
+    for i in range(max_pools):
 
-            layer = nn.MaxPool2d(kernel_size=2, stride=2)
+        # Convolutional layers between max pools
+        for j in range(conv_per_max_pool):
+            single_layer = []
 
-        elif l[0] == 'C': # Convolution
-            
-            out_channels = l[1]
-            layer = make_layer_C(in_channels, out_channels, batch_norm)
+            # Convolution (double number of channels before max pool)
+            if j == conv_per_max_pool - 1:
+                out_channels *= 2
+            conv2d = nn.Conv2d(in_channels, out_channels, kernel_size=3,
+                    padding=1)
+            single_layer.append(conv2d)
+
+            # Batch normalization
+            if batch_norm:
+                single_layer.append(nn.BatchNorm2d(out_channels))
+
+            # Relu
+            single_layer.append(nn.ReLU(inplace=True))
+
+            # Add layer to list of layers
+            single_layer = nn.Sequential(*single_layer)
+            layers.append(single_layer)
+
             in_channels = out_channels
 
-        elif l[0] == 'R_Basic': # Resnet basic
-
-            out_channels = l[1]
-            layer = make_layer_R_Basic(in_channels, out_channels, batch_norm)
-            in_channels = out_channels
-
-        elif l[0] == 'R_Bottleneck': # Resnet bottleneck
-
-            out_channels = l[1]
-            layer = make_layer_R_Bottleneck(in_channels, out_channels,
-                        batch_norm)
-            in_channels = out_channels
-
-        layers.append(layer)
+        # Max pooling layer
+        layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
 
     return nn.Sequential(*layers)
 
