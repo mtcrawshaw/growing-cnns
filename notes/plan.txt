@@ -1,5 +1,7 @@
 Cards:
 - Remove custom configuration from architecture specification (no growth speed parameter)
+- Make small dataset even smaller
+- Multiple batch sizes for growth steps
 - Unit test case for growth step
 - Add growth speed parameter
 - Unit test cases for growth step for each growth speed (linear, exponential)
@@ -12,6 +14,7 @@ Future stuff:
 Add ImageNet + other datasets
 Parallelize across multiple GPUs
 Add different block types
+Dynamic batch sizes across growth steps using model size estimation (https://github.com/jacobkimmel/pytorch_modelsize)
 
 Features:
 3 point growth methods (options: vanilla, freeze old layers for a time, different learning rates for old and new layers, and sliding weighted average for methods 2, 3)

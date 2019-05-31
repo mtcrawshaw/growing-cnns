@@ -1,0 +1,16 @@
+This is a list of all of the variations of the proposed method.
+
+- Growth speed (number of layers grows linearly or exponentially)
+- Position of convolutional layer which doubles number of channels (before max pool or after
+  max pool)
+- Position of newly inserted layer for linear growth speed (beginning of section, any point
+  in between, or end)
+- Growth method (Vanilla, skip, branching)
+- Transition methods (Vanilla, freeze old layers, different learning rates, weighted average)
+- Growth blocks (convolutional layer, resnet basic, resnet bottleneck, densenet, inception)
+- Stopping for each growth step (fixed number of epochs, early stopping, convergence)
+
+Training techniques:
+- All the normal ones (batch norm, optimizer + optimizer params, etc)
+- Regularization techniques (dropfiler, dropblock, droppath, stochastic depth)
+- 
