@@ -1,3 +1,5 @@
 experiments/*
 __pycache__/
 data/
+!data/*.py
+
