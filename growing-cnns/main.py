@@ -176,10 +176,12 @@ def run_static(num_classes, args, settings, criterion, train_loader, val_loader)
     results['validate_results'] = list(validate_results)
     return results
 
-def run_growing(num_classes, args, settings, criterion, train_loader, val_loader):
+def run_growing(num_classes, args, settings, criterion, train_loader,
+        val_loader):
     
     # Create growth controller
-    growth_controller = GrowthController(3, num_classes, settings['batch_normalization'])
+    growth_controller = GrowthController(settings['growth_steps'], num_classes,
+            settings['batch_normalization'])
     total_epoch = 0
 
     # Only evaluate model, no training
@@ -196,7 +198,8 @@ def run_growing(num_classes, args, settings, criterion, train_loader, val_loader
             model = model.cuda(args.gpu)
 
         model.load_state_dict(checkpoint['state_dict'])
-        validate(val_loader, model, criterion, 0, args, [], growth_step=total_steps)
+        validate(val_loader, model, criterion, 0, args, [],
+                growth_step=total_steps)
         return
 
     # Results object to write out
