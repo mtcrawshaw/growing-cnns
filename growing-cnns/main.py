@@ -100,20 +100,13 @@ def main(args):
         train_dataset = CIFARSmall(root='../data', train=True, transform=transform_train)
         val_dataset = CIFARSmall(root='../data', train=False, transform=transform_val)
 
-    train_sampler = None
-
-    train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=settings['batch_size'], shuffle=(train_sampler is None),
-        num_workers=args.workers, pin_memory=True, sampler=train_sampler)
-    val_loader = torch.utils.data.DataLoader(
-        val_dataset, batch_size=settings['batch_size'], shuffle=False,
-        num_workers=args.workers, pin_memory=True)
-
     # Run training/evaluation
     if experiment_type == "growing":
-        results = run_growing(num_classes, args, settings, criterion, train_loader, val_loader)
+        results = run_growing(num_classes, args, settings, criterion,
+                train_dataset, val_dataset)
     else:
-        results = run_static(num_classes, args, settings, criterion, train_loader, val_loader)
+        results = run_static(num_classes, args, settings, criterion,
+                train_dataset, val_dataset)
 
     # Write out results to log if this is a training session and not quiet mode
     if args.modelPath is None and not args.quiet:
@@ -121,7 +114,7 @@ def main(args):
         with open(logPath, 'w') as logFile:
             json.dump(results, logFile, indent=4)
 
-def run_static(num_classes, args, settings, criterion, train_loader, val_loader):
+def run_static(num_classes, args, settings, criterion, train_dataset, val_dataset):
 
     # Create model
     if settings['pretrained']:
@@ -138,13 +131,22 @@ def run_static(num_classes, args, settings, criterion, train_loader, val_loader)
                                momentum=settings['momentum'],
                                weight_decay=settings['weight_decay'])
 
+    # Create train and validation loaders from dataset
+    train_sampler = None
+    train_loader = torch.utils.data.DataLoader(
+        train_dataset, batch_size=settings['batch_size'], shuffle=(train_sampler is None),
+        num_workers=args.workers, pin_memory=True, sampler=train_sampler)
+    val_loader = torch.utils.data.DataLoader(
+        val_dataset, batch_size=settings['batch_size'], shuffle=False,
+        num_workers=args.workers, pin_memory=True)
+
+    # Run evaluation only
     if args.modelPath is not None:
         validate(val_loader, model, criterion, 0, args, [])
         return
 
     # Results object to write out
     results = {}
-    results['train_iterations_per_epoch'] = len(train_loader)
     train_results = []
     validate_results = []
 
@@ -176,8 +178,8 @@ def run_static(num_classes, args, settings, criterion, train_loader, val_loader)
     results['validate_results'] = list(validate_results)
     return results
 
-def run_growing(num_classes, args, settings, criterion, train_loader,
-        val_loader):
+def run_growing(num_classes, args, settings, criterion, train_dataset,
+        val_dataset):
     
     # Create growth controller
     growth_controller = GrowthController(settings['growth_steps'], num_classes,
@@ -186,8 +188,11 @@ def run_growing(num_classes, args, settings, criterion, train_loader,
 
     # Only evaluate model, no training
     if args.modelPath is not None:
+
+        # Load model checkpoint
         checkpoint = torch.load(args.modelPath)
 
+        # Grow model to correct size
         total_steps = checkpoint['growth_step']
         for growth_step in range(total_steps + 1):
             if growth_step == 0:
@@ -197,20 +202,44 @@ def run_growing(num_classes, args, settings, criterion, train_loader,
 
             model = model.cuda(args.gpu)
 
+        # Load weights into model
         model.load_state_dict(checkpoint['state_dict'])
+
+        # Create validation loader from dataset
+        if isinstance(settings['batch_size'], list):
+            batch_size = settings['batch_size'][total_steps]
+        else:
+            batch_size = settings['batch_size']
+        val_loader = torch.utils.data.DataLoader(
+            val_dataset, batch_size=batch_size, shuffle=False,
+            num_workers=args.workers, pin_memory=True)
+
         validate(val_loader, model, criterion, 0, args, [],
                 growth_step=total_steps)
         return
 
     # Results object to write out
     results = {}
-    results['train_iterations_per_epoch'] = len(train_loader)
     train_results = []
     validate_results = []
 
     # Outer training loop
     best_acc1 = 0
     for i in range(growth_controller.growth_steps):
+
+        # Create train and validation loader from dataset
+        if isinstance(settings['batch_size'], list):
+            batch_size = settings['batch_size'][i]
+        else:
+            batch_size = settings['batch_size']
+        train_sampler=None
+        train_loader = torch.utils.data.DataLoader(
+            train_dataset, batch_size=batch_size,
+            shuffle=(train_sampler is None), num_workers=args.workers,
+            pin_memory=True, sampler=train_sampler)
+        val_loader = torch.utils.data.DataLoader(
+            val_dataset, batch_size=batch_size, shuffle=False,
+            num_workers=args.workers, pin_memory=True)
 
         # Create model and optimizer
         print("=> creating growth iteration %d for model" % i)

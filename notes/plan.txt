@@ -1,12 +1,24 @@
 Cards:
-- Multiple batch sizes for growth steps
+
 - Unit test case for growth step
-- Add growth speed parameter
-- Unit test cases for growth step for each growth speed (linear, exponential)
+
+Merge to master
+
 - Identity initialization for new layers
 - Unit test case for function preservation after growth
+
+Merge to master
+
+- Add growth speed parameter
+- Unit test cases for growth step for each growth speed (linear, exponential)
+
+Merge to master
+
 - Add notes to README
 - Fix argument structure for training/evaluation
+
+Merge to master
+
 
 Future stuff:
 Add ImageNet + other datasets

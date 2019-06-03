@@ -15,9 +15,9 @@ class GrowthController():
         self.growth_steps = growth_steps
         self.current_step = -1
 
-        self.initial_channels = 4
-        self.max_pools = 3
-        self.conv_per_max_pool = 1
+        self.initial_channels = 8
+        self.max_pools = 4
+        self.conv_per_max_pool = 2
 
         # Define growth history, a list of the growth steps each layer was
         # inserted during. So on step 0, this list will be all zeroes and with
