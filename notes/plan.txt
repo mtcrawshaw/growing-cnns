@@ -1,6 +1,4 @@
 Cards:
-- Remove custom configuration from architecture specification (no growth speed parameter)
-- Make small dataset even smaller
 - Multiple batch sizes for growth steps
 - Unit test case for growth step
 - Add growth speed parameter
