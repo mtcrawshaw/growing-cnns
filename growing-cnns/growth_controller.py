@@ -65,12 +65,18 @@ class GrowthController():
             the max pool) so a new layer cannot be placed after the last layer.
             """
             new_layer_pos = self.conv_per_max_pool - 2
-            for j in range(self.conv_per_max_pool - 1):
+            numLayersTransferred = 0
+
+            for j in range(self.conv_per_max_pool):
+
                 if j == new_layer_pos:
+                    self.growth_history.insert(self.conv_per_max_pool * i + j,
+                            self.current_step)
                     continue
 
                 # Grab state dictionary from old layer
-                old_layer_index = self.conv_per_max_pool * i + j
+                old_layer_index = self.conv_per_max_pool * i + \
+                        numLayersTransferred
                 old_layer = old_model.features.__getitem__(old_layer_index)
                 old_state_dict = old_layer.state_dict()
 
@@ -78,9 +84,7 @@ class GrowthController():
                 new_layer_index = (self.conv_per_max_pool + 1) * i + j
                 new_layer = new_model.features.__getitem__(new_layer_index)
                 new_layer.load_state_dict(old_state_dict)
-
-            self.growth_history.insert(i * self.conv_per_max_pool,
-                    self.current_step)
+                numLayersTransferred += 1
 
         # Transfer classifier weights
         new_model.classifier.load_state_dict(old_model.classifier.state_dict())
