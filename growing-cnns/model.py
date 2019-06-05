@@ -3,32 +3,39 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision.models.resnet import BasicBlock, Bottleneck
 
-"""
-    Model
-"""
+IMAGE_WIDTH = 32
+IMAGE_HEIGHT = 32
 
 class CustomConvNet(nn.Module):
 
-    def __init__(self, initial_channels=64, max_pools=5, conv_per_max_pool=2,
-            num_classes=1000, init_weights=True, batch_norm=True):
+    def __init__(self, initialChannels=64, maxPools=4, convPerMaxPool=3,
+            numClasses=1000, initWeights=True, batchNorm=True,
+            classifierHiddenSize=2048):
         super(CustomConvNet, self).__init__()
 
-        self.features = make_features(initial_channels, max_pools,
-                conv_per_max_pool, batch_norm=batch_norm)
+        self.features = makeFeatures(initialChannels, maxPools,
+                convPerMaxPool, batchNorm=batchNorm)
+
+        # Calculate size of self.features output
+        # This setting of hardcoding width and height is temporary, it should
+        # be made dependent on the dataset.
+        width = IMAGE_WIDTH / (2 ** maxPools)
+        height = IMAGE_HEIGHT / (2 ** maxPools)
+        depth = initialChannels * (2 ** maxPools)
+        outputSize = int(width * height * depth)
+
         self.classifier = nn.Sequential(
-            # This hidden size may have to change for imagenet
-            nn.Linear(512, 4096), 
+            nn.Linear(outputSize, classifierHiddenSize), 
             nn.ReLU(True),
             nn.Dropout(),
-            nn.Linear(4096, 4096), 
+            nn.Linear(classifierHiddenSize, classifierHiddenSize), 
             nn.ReLU(True),
             nn.Dropout(),
-            nn.Linear(4096, num_classes),
+            nn.Linear(classifierHiddenSize, numClasses),
         )
-        if init_weights:
-            self._initialize_weights()
+        if initWeights:
+            self._initializeWeights()
 
     def forward(self, x):
         x = self.features(x)
@@ -36,7 +43,7 @@ class CustomConvNet(nn.Module):
         x = self.classifier(x)
         return x
 
-    def _initialize_weights(self):
+    def _initializeWeights(self):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
@@ -53,86 +60,41 @@ class CustomConvNet(nn.Module):
     Produces a pytorch Module for a network architecture described by
     the argument cfg.
 """
-def make_features(initial_channels, max_pools, conv_per_max_pool,
-        batch_norm=True):
+def makeFeatures(initialChannels, maxPools, convPerMaxPool,
+        batchNorm=True):
     layers = []
-    in_channels = 3
+    inChannels = 3
 
     # Build up list of layers
-    out_channels = initial_channels
-    for i in range(max_pools):
+    outChannels = initialChannels
+    for i in range(maxPools):
 
         # Convolutional layers between max pools
-        for j in range(conv_per_max_pool):
-            single_layer = []
+        for j in range(convPerMaxPool):
+            singleLayer = []
 
             # Convolution (double number of channels before max pool)
-            if j == conv_per_max_pool - 1:
-                out_channels *= 2
-            conv2d = nn.Conv2d(in_channels, out_channels, kernel_size=3,
+            if j == convPerMaxPool - 1:
+                outChannels *= 2
+            conv2d = nn.Conv2d(inChannels, outChannels, kernel_size=3,
                     padding=1)
-            single_layer.append(conv2d)
+            singleLayer.append(conv2d)
 
             # Batch normalization
-            if batch_norm:
-                single_layer.append(nn.BatchNorm2d(out_channels))
+            if batchNorm:
+                singleLayer.append(nn.BatchNorm2d(outChannels))
 
             # Relu
-            single_layer.append(nn.ReLU(inplace=True))
+            singleLayer.append(nn.ReLU(inplace=True))
 
             # Add layer to list of layers
-            single_layer = nn.Sequential(*single_layer)
-            layers.append(single_layer)
+            singleLayer = nn.Sequential(*singleLayer)
+            layers.append(singleLayer)
 
-            in_channels = out_channels
+            inChannels = outChannels
 
         # Max pooling layer
         layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
 
     return nn.Sequential(*layers)
-
-
-"""
-    Helper functions for make_features
-"""
-def make_layer_M():
-    return nn.MaxPool2d(kernel_size=2, stride=2)
-
-def make_layer_C(in_channels, out_channels, batch_norm):
-    conv2d = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
-
-    if batch_norm:
-        layer_list = [conv2d, nn.BatchNorm2d(out_channels), nn.ReLU(inplace=True)]
-    else:
-        layer_list = [conv2d, nn.ReLU(inplace=True)]
-
-    return nn.Sequential(*layer_list)
-
-def make_layer_R_Basic(in_channels, out_channels, batch_norm):
-    downsample = None
-
-    if out_channels != in_channels:
-        downsample = nn.Sequential(nn.Conv2d(in_channels,
-            out_channels, kernel_size=1, bias=False),
-            nn.BatchNorm2d(out_channels))
-
-    return BasicBlock(in_channels, out_channels,
-                downsample=downsample)
-
-def make_layer_R_Bottleneck(in_channels, out_channels, batch_norm):
-    downsample = None
-    if out_channels != in_channels:
-        downsample = nn.Sequential(
-            nn.Conv2d(in_channels,
-                out_channels, kernel_size=1,
-                bias=False),
-            nn.BatchNorm2d(out_channels))
-
-    if out_channels % Bottleneck.expansion != 0:
-        raise ValueError('Number of out_channels %d must be a' +
-            'multiple of Bottleneck.expansion %d.' % (out_channels,
-            Bottleneck.expansion))
-
-    return Bottleneck(in_channels, out_channels //
-                Bottleneck.expansion, downsample=downsample)
 

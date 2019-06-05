@@ -22,7 +22,7 @@ import torchvision.datasets as datasets
 import torchvision.models as models
 
 import utils
-from growth_controller import GrowthController
+from growthController import GrowthController
 
 # Import small dataset
 sys.path.append('../data')
@@ -34,27 +34,27 @@ experimentDir = None
 def main(args):
 
     # Load settings file
-    with open(args.settings_file, 'r') as settingsFile:
+    with open(args.settingsFile, 'r') as settingsFile:
         settings = json.load(settingsFile)
-    experiment_type = 'growing' if settings['growing'] else 'static'
+    experimentType = 'growing' if settings['growing'] else 'static'
     
     # Create experiments directory if it doesn't already exist
-    experiments_dir = os.path.join(os.path.dirname(__file__), 'experiments')
-    if not args.quiet and not os.path.isdir(experiments_dir):
-        os.makedirs(experiments_dir)
+    experimentsDir = os.path.join(os.path.dirname(__file__), 'experiments')
+    if not args.quiet and not os.path.isdir(experimentsDir):
+        os.makedirs(experimentsDir)
 
     # Create experiment directory to store results and model, if args.quiet
     # is false and we are training, not evaluating a model.
     global experimentDir
-    experimentDir = os.path.join(experiments_dir, args.name)
+    experimentDir = os.path.join(experimentsDir, args.name)
     if not args.quiet and args.modelPath is None:
         if os.path.isdir(experimentDir):
             print("Experiment with name '%s' already exists!" % args.name)
             exit()
         else:
             os.makedirs(experimentDir)
-            permanent_settings_file = os.path.join(experimentDir, args.name + '_settings.json')
-            shutil.copyfile(args.settings_file, permanent_settings_file)
+            permanentSettingsFile = os.path.join(experimentDir, args.name + '_settings.json')
+            shutil.copyfile(args.settingsFile, permanentSettingsFile)
 
     # Set seed and other cuda settings
     if args.seed is not None:
@@ -66,7 +66,7 @@ def main(args):
                       'which can slow down your training considerably! '
                       'You may see unexpected behavior when restarting '
                       'from checkpoints.')
-    num_classes = 10 # Temporary
+    numClasses = 10 # Temporary
     cudnn.benchmark = True
     torch.cuda.set_device(args.gpu)
 
@@ -78,14 +78,14 @@ def main(args):
     IMAGENET_STDS = (0.229, 0.224, 0.225)
 
     # Data transformations
-    transform_train = transforms.Compose([
+    transformTrain = transforms.Compose([
         #transforms.Resize(256),      # Note: These commented transformations should be added for imagenet when the time comes.
         #transforms.RandomCrop(224),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize(IMAGENET_MEANS, IMAGENET_STDS),
     ])
-    transform_val = transforms.Compose([
+    transformVal = transforms.Compose([
         #transforms.Resize(256),
         #transforms.CenterCrop(224),
         transforms.ToTensor(),
@@ -94,19 +94,19 @@ def main(args):
 
     # Load dataset
     if not args.small:
-        train_dataset = datasets.CIFAR10(root='../data', train=True, download=True, transform=transform_train)
-        val_dataset = datasets.CIFAR10(root='../data', train=False, download=True, transform=transform_val)
+        trainDataset = datasets.CIFAR10(root='../data', train=True, download=True, transform=transformTrain)
+        valDataset = datasets.CIFAR10(root='../data', train=False, download=True, transform=transformVal)
     else:
-        train_dataset = CIFARSmall(root='../data', train=True, transform=transform_train)
-        val_dataset = CIFARSmall(root='../data', train=False, transform=transform_val)
+        trainDataset = CIFARSmall(root='../data', train=True, transform=transformTrain)
+        valDataset = CIFARSmall(root='../data', train=False, transform=transformVal)
 
     # Run training/evaluation
-    if experiment_type == "growing":
-        results = run_growing(num_classes, args, settings, criterion,
-                train_dataset, val_dataset)
+    if experimentType == "growing":
+        results = runGrowing(numClasses, args, settings, criterion,
+                trainDataset, valDataset)
     else:
-        results = run_static(num_classes, args, settings, criterion,
-                train_dataset, val_dataset)
+        results = runStatic(numClasses, args, settings, criterion,
+                trainDataset, valDataset)
 
     # Write out results to log if this is a training session and not quiet mode
     if args.modelPath is None and not args.quiet:
@@ -114,77 +114,83 @@ def main(args):
         with open(logPath, 'w') as logFile:
             json.dump(results, logFile, indent=4)
 
-def run_static(num_classes, args, settings, criterion, train_dataset, val_dataset):
+def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
 
     # Create model
     if settings['pretrained']:
         print("=> using pre-trained model '{}'".format(settings['arch']))
-        model = models.__dict__[settings['arch']](pretrained=True, num_classes=num_classes)
+        model = models.__dict__[settings['arch']](pretrained=True, numClasses=numClasses)
     else:
         print("=> creating model '{}'".format(settings['arch']))
-        model = models.__dict__[settings['arch']](num_classes=num_classes)
+        model = models.__dict__[settings['arch']](numClasses=numClasses)
 
     model = model.cuda(args.gpu)
 
     # Create optimizer
-    optimizer = torch.optim.SGD(model.parameters(), settings['initial_learning_rate'],
+    optimizer = torch.optim.SGD(model.parameters(), settings['initialLearningRate'],
                                momentum=settings['momentum'],
-                               weight_decay=settings['weight_decay'])
+                               weight_decay=settings['weightDecay'])
 
     # Create train and validation loaders from dataset
-    train_sampler = None
-    train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=settings['batch_size'], shuffle=(train_sampler is None),
-        num_workers=args.workers, pin_memory=True, sampler=train_sampler)
-    val_loader = torch.utils.data.DataLoader(
-        val_dataset, batch_size=settings['batch_size'], shuffle=False,
+    trainSampler = None
+    trainLoader = torch.utils.data.DataLoader(
+        trainDataset, batch_size=settings['batchSize'], shuffle=(trainSampler is None),
+        num_workers=args.workers, pin_memory=True, sampler=trainSampler)
+    valLoader = torch.utils.data.DataLoader(
+        valDataset, batch_size=settings['batchSize'], shuffle=False,
         num_workers=args.workers, pin_memory=True)
 
     # Run evaluation only
     if args.modelPath is not None:
-        validate(val_loader, model, criterion, 0, args, [])
+        validate(valLoader, model, criterion, 0, args, [])
         return
 
     # Results object to write out
     results = {}
-    train_results = []
-    validate_results = []
+    trainResults = []
+    validateResults = []
 
     # Training loop
-    best_acc1 = 0
+    bestAcc1 = 0
     for epoch in range(settings['epochs']):
-        if epoch > 0 and epoch % settings['lr_decay_epoch_step'] == 0:
-            utils.adjust_learning_rate(optimizer, settings['lr_decay_epoch_ratio'])
+        if epoch > 0 and epoch % settings['lrDecayEpochStep'] == 0:
+            utils.adjustLearningRate(optimizer, settings['lrDecayEpochRatio'])
 
         # Train for one epoch
-        train(train_loader, model, criterion, optimizer, epoch, args, train_results)
+        train(trainLoader, model, criterion, optimizer, epoch, args, trainResults)
 
         # Evaluate on validation set
-        acc1 = validate(val_loader, model, criterion, epoch, args, validate_results)
+        acc1 = validate(valLoader, model, criterion, epoch, args, validateResults)
 
         # Remember best acc@1 and save checkpoint
-        is_best = acc1 > best_acc1
-        best_acc1 = max(acc1, best_acc1)
+        isBest = acc1 > bestAcc1
+        bestAcc1 = max(acc1, bestAcc1)
         if not args.quiet:
-            utils.save_checkpoint(experimentDir, args.name, {
+            utils.saveCheckpoint(experimentDir, args.name, {
                 'epoch': epoch + 1,
                 'arch': settings['arch'],
-                'state_dict': model.state_dict(),
-                'best_acc1': best_acc1,
+                'stateDict': model.state_dict(),
+                'bestAcc1': bestAcc1,
                 'optimizer': optimizer.state_dict(),
-            }, is_best)
+            }, isBest)
 
-    results['train_results'] = list(train_results)
-    results['validate_results'] = list(validate_results)
+    results['trainResults'] = list(trainResults)
+    results['validateResults'] = list(validateResults)
     return results
 
-def run_growing(num_classes, args, settings, criterion, train_dataset,
-        val_dataset):
+def runGrowing(numClasses, args, settings, criterion, trainDataset,
+        valDataset):
     
     # Create growth controller
-    growth_controller = GrowthController(settings['growth_steps'], num_classes,
-            settings['batch_normalization'])
-    total_epoch = 0
+    growthController = GrowthController(
+            settings['initialChannels'],
+            settings['maxPools'],
+            settings['convPerMaxPool'],
+            settings['growthSteps'],
+            numClasses,
+            settings['batchNorm'],
+            settings['classifierHiddenSize'])
+    totalEpoch = 0
 
     # Only evaluate model, no training
     if args.modelPath is not None:
@@ -193,105 +199,105 @@ def run_growing(num_classes, args, settings, criterion, train_dataset,
         checkpoint = torch.load(args.modelPath)
 
         # Grow model to correct size
-        total_steps = checkpoint['growth_step']
-        for growth_step in range(total_steps + 1):
-            if growth_step == 0:
-                model = growth_controller.step()
+        totalSteps = checkpoint['growthStep']
+        for growthStep in range(totalSteps + 1):
+            if growthStep == 0:
+                model = growthController.step()
             else:
-                model = growth_controller.step(old_model=model)
+                model = growthController.step(oldModel=model)
 
             model = model.cuda(args.gpu)
 
         # Load weights into model
-        model.load_state_dict(checkpoint['state_dict'])
+        model.load_state_dict(checkpoint['stateDict'])
 
         # Create validation loader from dataset
-        if isinstance(settings['batch_size'], list):
-            batch_size = settings['batch_size'][total_steps]
+        if isinstance(settings['batchSize'], list):
+            batchSize = settings['batchSize'][totalSteps]
         else:
-            batch_size = settings['batch_size']
-        val_loader = torch.utils.data.DataLoader(
-            val_dataset, batch_size=batch_size, shuffle=False,
+            batchSize = settings['batchSize']
+        valLoader = torch.utils.data.DataLoader(
+            valDataset, batch_size=batchSize, shuffle=False,
             num_workers=args.workers, pin_memory=True)
 
-        validate(val_loader, model, criterion, 0, args, [],
-                growth_step=total_steps)
+        validate(valLoader, model, criterion, 0, args, [],
+                growthStep=totalSteps)
         return
 
     # Results object to write out
     results = {}
-    train_results = []
-    validate_results = []
+    trainResults = []
+    validateResults = []
 
     # Outer training loop
-    best_acc1 = 0
-    for i in range(growth_controller.growth_steps):
+    bestAcc1 = 0
+    for i in range(growthController.growthSteps):
 
         # Create train and validation loader from dataset
-        if isinstance(settings['batch_size'], list):
-            batch_size = settings['batch_size'][i]
+        if isinstance(settings['batchSize'], list):
+            batchSize = settings['batchSize'][i]
         else:
-            batch_size = settings['batch_size']
-        train_sampler=None
-        train_loader = torch.utils.data.DataLoader(
-            train_dataset, batch_size=batch_size,
-            shuffle=(train_sampler is None), num_workers=args.workers,
-            pin_memory=True, sampler=train_sampler)
-        val_loader = torch.utils.data.DataLoader(
-            val_dataset, batch_size=batch_size, shuffle=False,
+            batchSize = settings['batchSize']
+        trainSampler=None
+        trainLoader = torch.utils.data.DataLoader(
+            trainDataset, batch_size=batchSize,
+            shuffle=(trainSampler is None), num_workers=args.workers,
+            pin_memory=True, sampler=trainSampler)
+        valLoader = torch.utils.data.DataLoader(
+            valDataset, batch_size=batchSize, shuffle=False,
             num_workers=args.workers, pin_memory=True)
 
         # Create model and optimizer
         print("=> creating growth iteration %d for model" % i)
         if i == 0:
-            model = growth_controller.step()
+            model = growthController.step()
         else:
-            model = growth_controller.step(old_model=model)
+            model = growthController.step(oldModel=model)
 
         model = model.cuda(args.gpu)
 
-        optimizer_params = utils.get_initial_optimizer_params(model,
-                growth_controller.growth_history,
-                settings['initial_learning_rate'],
-                settings['lr_decay_growth_ratio'], 
+        optimizerParams = utils.getInitialOptimizerParams(model,
+                growthController.growthHistory,
+                settings['initialLearningRate'],
+                settings['lrDecayGrowthRatio'], 
                 i)
-        optimizer = torch.optim.SGD(optimizer_params,
+        optimizer = torch.optim.SGD(optimizerParams,
                 momentum=settings['momentum'],
-                weight_decay=settings['weight_decay'])
+                weight_decay=settings['weightDecay'])
 
         # Inner training loop
-        for epoch in range(settings['epochs_per_step']):
-            if epoch > 0 and epoch % settings['lr_decay_epoch_step'] == 0:
-                utils.adjust_learning_rate(optimizer,
-                settings['lr_decay_epoch_ratio'])
+        for epoch in range(settings['epochsPerStep']):
+            if epoch > 0 and epoch % settings['lrDecayEpochStep'] == 0:
+                utils.adjustLearningRate(optimizer,
+                settings['lrDecayEpochRatio'])
 
             # train for one epoch
-            train(train_loader, model, criterion, optimizer, epoch, args, train_results, growth_step=i)
+            train(trainLoader, model, criterion, optimizer, epoch, args, trainResults, growthStep=i)
 
             # evaluate on validation set
-            acc1 = validate(val_loader, model, criterion, epoch, args, validate_results, growth_step=i)
+            acc1 = validate(valLoader, model, criterion, epoch, args, validateResults, growthStep=i)
 
             # remember best acc@1 and save checkpoint
-            is_best = acc1 > best_acc1
-            best_acc1 = max(acc1, best_acc1)
+            isBest = acc1 > bestAcc1
+            bestAcc1 = max(acc1, bestAcc1)
             if not args.quiet:
-                utils.save_checkpoint(experimentDir, args.name, {
-                    'growth_step': i,
+                utils.saveCheckpoint(experimentDir, args.name, {
+                    'growthStep': i,
                     'epoch': epoch + 1,
-                    'state_dict': model.state_dict(),
-                    'best_acc1': best_acc1,
+                    'stateDict': model.state_dict(),
+                    'bestAcc1': bestAcc1,
                     'optimizer' : optimizer.state_dict(),
-                }, is_best)
+                }, isBest)
 
-            total_epoch += 1
+            totalEpoch += 1
 
-    results['train_results'] = list(train_results)
-    results['validate_results'] = list(validate_results)
+    results['trainResults'] = list(trainResults)
+    results['validateResults'] = list(validateResults)
     return results
 
-def train(train_loader, model, criterion, optimizer, epoch, args, train_results, growth_step=None):
-    batch_time = utils.AverageMeter()
-    data_time = utils.AverageMeter()
+def train(trainLoader, model, criterion, optimizer, epoch, args, trainResults, growthStep=None):
+    batchTime = utils.AverageMeter()
+    dataTime = utils.AverageMeter()
     losses = utils.AverageMeter()
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
@@ -300,9 +306,9 @@ def train(train_loader, model, criterion, optimizer, epoch, args, train_results,
     model.train()
 
     end = time.time()
-    for i, (input, target) in enumerate(train_loader):
+    for i, (input, target) in enumerate(trainLoader):
         # measure data loading time
-        data_time.update(time.time() - end)
+        dataTime.update(time.time() - end)
 
         input = input.cuda(args.gpu, non_blocking=True)
         target = target.cuda(args.gpu, non_blocking=True)
@@ -323,29 +329,29 @@ def train(train_loader, model, criterion, optimizer, epoch, args, train_results,
         optimizer.step()
 
         # measure elapsed time
-        batch_time.update(time.time() - end)
+        batchTime.update(time.time() - end)
         end = time.time()
 
-        if i % args.print_freq == 0:
-            growth_msg = 0 if growth_step is None else growth_step
+        if i % args.printFreq == 0:
+            growthMsg = 0 if growthStep is None else growthStep
             print('Epoch: [{0},{1}][{2}/{3}]\t'
-                  'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                  'Data {data_time.val:.3f} ({data_time.avg:.3f})\t'
+                  'Time {batchTime.val:.3f} ({batchTime.avg:.3f})\t'
+                  'Data {dataTime.val:.3f} ({dataTime.avg:.3f})\t'
                   'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                   'Acc@1 {top1.val:.3f} ({top1.avg:.3f})\t'
                   'Acc@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
-                   growth_msg, epoch, i, len(train_loader), batch_time=batch_time,
-                   data_time=data_time, loss=losses, top1=top1, top5=top5))
-            current_result = {'epoch': epoch, 'iteration': i,
-                              'time': batch_time.val, 'loss': losses.val, 'top1': top1.val.item(),
+                   growthMsg, epoch, i, len(trainLoader), batchTime=batchTime,
+                   dataTime=dataTime, loss=losses, top1=top1, top5=top5))
+            currentResult = {'epoch': epoch, 'iteration': i,
+                              'time': batchTime.val, 'loss': losses.val, 'top1': top1.val.item(),
                               'top5': top5.val.item()}
-            if growth_step is not None:
-                current_result['growth_step'] = growth_step
-            train_results.append(dict(current_result))
+            if growthStep is not None:
+                currentResult['growthStep'] = growthStep
+            trainResults.append(dict(currentResult))
 
 
-def validate(val_loader, model, criterion, epoch, args, validate_results, growth_step=None):
-    batch_time = utils.AverageMeter()
+def validate(valLoader, model, criterion, epoch, args, validateResults, growthStep=None):
+    batchTime = utils.AverageMeter()
     losses = utils.AverageMeter()
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
@@ -355,7 +361,7 @@ def validate(val_loader, model, criterion, epoch, args, validate_results, growth
 
     with torch.no_grad():
         end = time.time()
-        for i, (input, target) in enumerate(val_loader):
+        for i, (input, target) in enumerate(valLoader):
             input = input.cuda(args.gpu, non_blocking=True)
             target = target.cuda(args.gpu, non_blocking=True)
 
@@ -370,25 +376,25 @@ def validate(val_loader, model, criterion, epoch, args, validate_results, growth
             top5.update(acc5[0], input.size(0))
 
             # measure elapsed time
-            batch_time.update(time.time() - end)
+            batchTime.update(time.time() - end)
             end = time.time()
 
-            if i % args.print_freq == 0:
+            if i % args.printFreq == 0:
                 print('Test: [{0}/{1}]\t'
-                      'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+                      'Time {batchTime.val:.3f} ({batchTime.avg:.3f})\t'
                       'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                       'Acc@1 {top1.val:.3f} ({top1.avg:.3f})\t'
                       'Acc@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
-                       i, len(val_loader), batch_time=batch_time, loss=losses,
+                       i, len(valLoader), batchTime=batchTime, loss=losses,
                        top1=top1, top5=top5))
 
         print(' * Acc@1 {top1.avg:.3f} Acc@5 {top5.avg:.3f}'
               .format(top1=top1, top5=top5))
-        current_result = {'epoch': epoch, 'loss': losses.avg,
+        currentResult = {'epoch': epoch, 'loss': losses.avg,
                                  'top1': top1.avg.item(), 'top5': top5.avg.item()} 
-        if growth_step is not None:
-            current_result['growth_step'] = growth_step
-        validate_results.append(dict(current_result))
+        if growthStep is not None:
+            currentResult['growthStep'] = growthStep
+        validateResults.append(dict(currentResult))
 
     return top1.avg
 
@@ -396,12 +402,12 @@ def validate(val_loader, model, criterion, epoch, args, validate_results, growth
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Growing CNNs with PyTorch')
     parser.add_argument('name', type=str, help='name of experiment')
-    parser.add_argument('settings_file', type=str, help='name of settings file '
+    parser.add_argument('settingsFile', type=str, help='name of settings file '
                         'containing hyperparameter and training settings. Example '
-                        'settings file is example_growing_settings.json')
+                        'settings file is exampleGrowingSettings.json')
     parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                         help='number of data loading workers (default: 4)')
-    parser.add_argument('-p', '--print-freq', default=10, type=int,
+    parser.add_argument('-p', '--printFreq', default=10, type=int,
                         metavar='N', help='print frequency (default: 10)')
     parser.add_argument('--evaluate', dest='modelPath', type=str, default=None,
                         help='evaluate model with path modelPath on validation set')

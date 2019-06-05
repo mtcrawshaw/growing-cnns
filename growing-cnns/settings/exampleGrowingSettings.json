@@ -1,0 +1,21 @@
+{
+    "growing": true,
+
+    "initialChannels": 64,
+    "maxPools": 4,
+    "convPerMaxPool": 3,
+    "classifierHiddenSize": 2048,
+
+    "growthSteps": 3,
+    "epochsPerStep": 1,
+
+    "batchSize": [128, 128, 64],
+    "initialLearningRate": 0.01,
+    "momentum": 0.9,
+    "weightDecay": 1e-4,
+    "batchNorm": true,
+
+    "lrDecayEpochStep": 1,
+    "lrDecayEpochRatio": 0.1,
+    "lrDecayGrowthRatio": 0.1
+}

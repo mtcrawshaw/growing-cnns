@@ -21,39 +21,39 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 """
-    Sets the learning rate to the initial LR decayed by lr_decay_ratio every
-    lr_decay_step epochs
+    Sets the learning rate to the initial LR decayed by lrDecayRatio every
+    lrDecayStep epochs
 """
-def adjust_learning_rate(optimizer, lr_decay_ratio):
-    for param_group in optimizer.param_groups:
-        param_group['lr'] *= lr_decay_ratio
+def adjustLearningRate(optimizer, lrDecayRatio):
+    for paramGroup in optimizer.paramGroups:
+        paramGroup['lr'] *= lrDecayRatio
 
 """
     Returns optimizer parameters for the beginning of each growth step. The
     learning rate for a given layer decreases by a factor of 10 for each growth
     step that has passed since that layer was introduced to the network.
 """
-def get_initial_optimizer_params(model, growth_history, initial_lr,
-        lr_growth_decay, growth_step):
-    optimizer_params = []
+def getInitialOptimizerParams(model, growthHistory, initialLR,
+        lrGrowthDecay, growthStep):
+    optimizerParams = []
 
-    for i, layer_step in enumerate(growth_history):
-        lr = initial_lr * (lr_growth_decay ** (growth_step - layer_step))
-        optimizer_params.append({
+    for i, layerStep in enumerate(growthHistory):
+        lr = initialLR * (lrGrowthDecay ** (growthStep - layerStep))
+        optimizerParams.append({
             'params': model.features.__getitem__(i).parameters(),
             'lr': lr})
 
-    classifier_lr = initial_lr * (lr_growth_decay ** growth_step)
-    optimizer_params.append({'params': model.classifier.parameters(),
-        'lr': classifier_lr})
+    classifierLR = initialLR * (lrGrowthDecay ** growthStep)
+    optimizerParams.append({'params': model.classifier.parameters(),
+        'lr': classifierLR})
 
-    return optimizer_params
+    return optimizerParams
 
 def accuracy(output, target, topk=(1,)):
     """Computes the accuracy over the k top predictions for the specified values of k"""
     with torch.no_grad():
         maxk = max(topk)
-        batch_size = target.size(0)
+        batchSize = target.size(0)
 
         _, pred = output.topk(maxk, 1, True, True)
         pred = pred.t()
@@ -61,17 +61,17 @@ def accuracy(output, target, topk=(1,)):
 
         res = []
         for k in topk:
-            correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
-            res.append(correct_k.mul_(100.0 / batch_size))
+            correctK = correct[:k].view(-1).float().sum(0, keepdim=True)
+            res.append(correctK.mul_(100.0 / batchSize))
         return res
 
-def save_checkpoint(experimentDir, experimentName, state, is_best):
+def saveCheckpoint(experimentDir, experimentName, state, isBest):
     filename = os.path.join(experimentDir, experimentName)
     filename += '.pth'
-    best_filename = os.path.join(experimentDir, experimentName + '_best')
-    best_filename += '.pth'
+    bestFilename = os.path.join(experimentDir, experimentName + '_best')
+    bestFilename += '.pth'
     torch.save(state, filename)
-    if is_best:
-        shutil.copyfile(filename, best_filename)
+    if isBest:
+        shutil.copyfile(filename, bestFilename)
 
 
