@@ -5,7 +5,7 @@ import importlib
 import numpy as np
 
 sys.path.append('../growing-cnns')
-growthController = importlib.import_module('growth_controller')
+growthController = importlib.import_module('growthController')
 GrowthController = growthController.GrowthController
 
 class TestGrowthController(unittest.TestCase):
@@ -75,28 +75,33 @@ class TestGrowthController(unittest.TestCase):
                     fullName = 'features.%d.%s' % (layerIndices[i], paramName)
                     values[i] = stateDicts[i][fullName].numpy()
 
-                self.asserTrue(np.array_equal(values[0], values[1]))
+                self.assertTrue(np.array_equal(values[0], values[1]))
 
 
-    def test_growthStep_weights(self):
+    def testGrowthStepWeights(self):
 
-        growthSteps = 3
-        numClasses = 1000
-        batchNorm = True
+        args = {}
+        args['growthSteps'] = 3
+        args['initialChannels'] = 8
+        args['maxPools'] = 3
+        args['convPerMaxPool'] = 2
+        args['numClasses'] = 1000
+        args['batchNorm'] = True
+        args['classifierHiddenSize'] = 128
 
         stateDicts = []
-        controller = GrowthController(growthSteps, numClasses, batchNorm)
+        controller = GrowthController(**args)
 
         # Initialize model
         model = controller.step()
         stateDicts.append(model.state_dict())
 
         # Growth step 1
-        model = controller.step(old_model=model)
+        model = controller.step(oldModel=model)
         stateDicts.append(model.state_dict())
 
         # Growth step 2
-        model = controller.step(old_model=model)
+        model = controller.step(oldModel=model)
         stateDicts.append(model.state_dict())
 
         # Compare features and classifier for steps 0 and 1
