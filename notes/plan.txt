@@ -1,9 +1,5 @@
 Cards:
 
-- Unit test case for growth step
-
-Merge to master
-
 - Identity initialization for new layers
 - Unit test case for function preservation after growth
 
