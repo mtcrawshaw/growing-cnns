@@ -10,7 +10,7 @@ IMAGE_HEIGHT = 32
 class CustomConvNet(nn.Module):
 
     def __init__(self, initialChannels=64, maxPools=4, convPerMaxPool=3,
-            numClasses=1000, initWeights=True, batchNorm=True,
+            numClasses=1000, randomWeights=True, batchNorm=True,
             classifierHiddenSize=2048):
         super(CustomConvNet, self).__init__()
 
@@ -28,14 +28,12 @@ class CustomConvNet(nn.Module):
         self.classifier = nn.Sequential(
             nn.Linear(outputSize, classifierHiddenSize), 
             nn.ReLU(True),
-            nn.Dropout(),
             nn.Linear(classifierHiddenSize, classifierHiddenSize), 
             nn.ReLU(True),
-            nn.Dropout(),
             nn.Linear(classifierHiddenSize, numClasses),
         )
-        if initWeights:
-            self._initializeWeights()
+
+        self._initializeWeights(randomWeights)
 
     def forward(self, x):
         x = self.features(x)
@@ -43,10 +41,19 @@ class CustomConvNet(nn.Module):
         x = self.classifier(x)
         return x
 
-    def _initializeWeights(self):
+    """
+        If randomWeights is False, then the weights of the convolutional
+        layers are initialized with the Dirac delta function, so that
+        each convolutional layer calculates the identity function.
+    """
+    def _initializeWeights(self, randomWeights=True):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                if randomWeights:
+                    nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                else:
+                    nn.init.dirac_(m.weight)
+
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
             elif isinstance(m, nn.BatchNorm2d):

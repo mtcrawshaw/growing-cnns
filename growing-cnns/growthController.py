@@ -40,10 +40,14 @@ class GrowthController():
         # Initially creating model
         if self.currentStep == -1:
             self.currentStep = 0
-            newModel = CustomConvNet(self.initialChannels, self.maxPools,
-                    self.convPerMaxPool, numClasses=self.numClasses,
+            newModel = CustomConvNet(
+                    initialChannels=self.initialChannels,
+                    maxPools=self.maxPools,
+                    convPerMaxPool=self.convPerMaxPool,
+                    numClasses=self.numClasses,
                     batchNorm=self.batchNorm,
-                    classifierHiddenSize=self.classifierHiddenSize) 
+                    classifierHiddenSize=self.classifierHiddenSize
+            ) 
             numLayers = self.maxPools * (self.convPerMaxPool + 1)
             self.growthHistory = [0 for i in range(numLayers)]
             return newModel
@@ -51,10 +55,15 @@ class GrowthController():
         # Create new model
         self.currentStep += 1
         self.convPerMaxPool += 1
-        newModel = CustomConvNet(self.initialChannels, self.maxPools,
-                self.convPerMaxPool, numClasses=self.numClasses,
-                batchNorm=self.batchNorm,
-                classifierHiddenSize=self.classifierHiddenSize)
+        newModel = CustomConvNet(
+                initialChannels=self.initialChannels,
+                maxPools=self.maxPools,
+                convPerMaxPool=self.convPerMaxPool,
+                numClasses=self.numClasses,
+                batchNorm=self.batchNorm, 
+                classifierHiddenSize=self.classifierHiddenSize,
+                randomWeights=False
+        )
 
         # Transfer weights from old model to new model
         for i in range(self.maxPools):

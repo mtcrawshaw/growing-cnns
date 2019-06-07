@@ -2,7 +2,10 @@ import sys
 import unittest
 import importlib
 
+import torch
 import numpy as np
+
+from toyModel import SimpleNet
 
 sys.path.append('../growing-cnns')
 growthController = importlib.import_module('growthController')
@@ -78,6 +81,10 @@ class TestGrowthController(unittest.TestCase):
                 self.assertTrue(np.array_equal(values[0], values[1]))
 
 
+    """
+        Tests whether the corresponding layers between a model and the
+        resulting model after a growth step have the same weight values.
+    """
     def testGrowthStepWeights(self):
 
         args = {}
@@ -86,7 +93,7 @@ class TestGrowthController(unittest.TestCase):
         args['maxPools'] = 3
         args['convPerMaxPool'] = 2
         args['numClasses'] = 1000
-        args['batchNorm'] = True
+        args['batchNorm'] = False
         args['classifierHiddenSize'] = 128
 
         stateDicts = []
@@ -115,6 +122,160 @@ class TestGrowthController(unittest.TestCase):
                 (8, 10), (9, 11), (10, 13), (12, 15), (13, 16), (14, 18)]
         self.assertEqualLayers(stateDicts[1], stateDicts[2], parallelLayers)
         self.assertEqualClassifier(stateDicts[1], stateDicts[2])
+
+
+
+    """
+        Tests whether a model and the resulting model after a growth step
+        calculate the same output given the same input.
+    """
+    def testGrowthStepFunction(self):
+
+        # Create growth controller
+        args = {}
+        args['growthSteps'] = 3
+        args['initialChannels'] = 8
+        args['maxPools'] = 3
+        args['convPerMaxPool'] = 2
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['classifierHiddenSize'] = 128
+        controller = GrowthController(**args)
+
+        # Create test input
+        batchSize = 8
+        imageHeight = 32
+        imageWidth = 32
+        imageDepth = 3
+        Z = batchSize + imageHeight + imageWidth + imageDepth
+        testInput = np.zeros([batchSize, imageDepth, imageHeight, imageWidth])
+        for b in range(batchSize):
+            for i in range(imageHeight):
+                for j in range(imageWidth):
+                    for k in range(imageDepth):
+                        testInput[b, k, i, j] = float(b + i + j + k)
+        testInput = torch.as_tensor(testInput, dtype=torch.float32)
+        testInput = testInput.cuda(0)
+
+        outputs = []
+        activations = []
+
+        # Initialize model
+        model = controller.step()
+        model = model.cuda(0)
+        outputs.append(model(testInput).detach().cpu().numpy())
+        activations.append(getActivations(testInput, model))
+
+        # Growth step 1
+        model = controller.step(oldModel=model)
+        model = model.cuda(0)
+        outputs.append(model(testInput).detach().cpu().numpy())
+        activations.append(getActivations(testInput, model))
+
+        # Growth step 2
+        model = controller.step(oldModel=model)
+        model = model.cuda(0)
+        outputs.append(model(testInput).detach().cpu().numpy())
+        activations.append(getActivations(testInput, model))
+
+        # Compare outputs
+        parallelLayers  = [None, None]
+        parallelLayers[0] = [
+                (1, 1),
+                (2, 3),
+                (4, 5),
+                (5, 7),
+                (7, 9),
+                (8, 11)
+        ]
+        parallelLayers[1] = [
+                (1, 1),
+                (2, 2),
+                (3, 4),
+                (5, 6),
+                (6, 7),
+                (7, 9),
+                (9, 11),
+                (10, 12),
+                (11, 14)
+        ]
+        classifierBeginning = [10, 13, 16]
+        classifierLength = 5
+
+        for i, parallel in enumerate(parallelLayers):
+            print("Step: %d" % i)
+            for oldLayer, newLayer in parallel:
+
+                oldActivations = activations[i][oldLayer]
+                newActivations = activations[i + 1][newLayer]
+                diff = maxDiff(oldActivations, newActivations)
+                print("%d, %d: %f" % (oldLayer, newLayer, diff))
+
+            for j in range(classifierLength):
+                
+                oldLayer = classifierBeginning[i] + j
+                newLayer = classifierBeginning[i + 1] + j
+                oldActivations = activations[i][oldLayer]
+                newActivations = activations[i + 1][newLayer]
+                diff = maxDiff(oldActivations, newActivations)
+                print("Classifier %d: %f" % (j, diff))
+
+        print(maxDiff(outputs[0], outputs[1]))
+        print(maxDiff(outputs[1], outputs[2]))
+        self.assertTrue(np.allclose(outputs[1], outputs[2]))
+        self.assertTrue(np.allclose(outputs[1], outputs[2]))
+
+
+    def testDirac(self):
+
+        # Initialize model
+        model = SimpleNet()
+        model = model.cuda()
+
+        # Create test input
+        batchSize = 1
+        imageHeight = 4
+        imageWidth = 4
+        imageDepth = 2
+        Z = batchSize + imageHeight + imageWidth + imageDepth
+        testInput = np.zeros([batchSize, imageDepth, imageHeight, imageWidth])
+        for b in range(batchSize):
+            for i in range(imageHeight):
+                for j in range(imageWidth):
+                    for k in range(imageDepth):
+                        testInput[b, k, i, j] = float(b + i + j + k) / Z
+        tensorInput = torch.as_tensor(testInput, dtype=torch.float32)
+        tensorInput = tensorInput.cuda(0)
+
+        # Run forward pass
+        output = model(tensorInput).detach().cpu().numpy()
+        self.assertTrue(np.allclose(output, testInput))
+
+
+def getActivations(testInput, model):
+
+    currentActivations = [testInput]
+
+    features = model.features._modules.values()
+    for feature in features:
+        prevLayer = currentActivations[-1]
+        currentActivations.append(feature(prevLayer))
+
+    classifierLayers = model.classifier._modules.values()
+    for i, layer in enumerate(classifierLayers):
+        prevLayer = currentActivations[-1]
+        if i == 0:
+            prevLayer = prevLayer.view(prevLayer.size(0), -1)
+        currentActivations.append(layer(prevLayer))
+
+    for i in range(len(currentActivations)):
+        currentActivations[i] = currentActivations[i].detach().cpu().numpy()
+
+    return list(currentActivations)
+
+
+def maxDiff(arr1, arr2):
+    return np.average(np.absolute(arr1 - arr2))
 
 if __name__ == '__main__':
     unittest.main()

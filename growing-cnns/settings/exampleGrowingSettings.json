@@ -9,7 +9,7 @@
     "growthSteps": 3,
     "epochsPerStep": 1,
 
-    "batchSize": [128, 128, 64],
+    "batchSize": [128, 64, 64],
     "initialLearningRate": 0.01,
     "momentum": 0.9,
     "weightDecay": 1e-4,
