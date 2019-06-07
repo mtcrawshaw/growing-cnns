@@ -158,70 +158,23 @@ class TestGrowthController(unittest.TestCase):
         testInput = testInput.cuda(0)
 
         outputs = []
-        activations = []
 
         # Initialize model
         model = controller.step()
         model = model.cuda(0)
         outputs.append(model(testInput).detach().cpu().numpy())
-        activations.append(getActivations(testInput, model))
 
         # Growth step 1
         model = controller.step(oldModel=model)
         model = model.cuda(0)
         outputs.append(model(testInput).detach().cpu().numpy())
-        activations.append(getActivations(testInput, model))
 
         # Growth step 2
         model = controller.step(oldModel=model)
         model = model.cuda(0)
         outputs.append(model(testInput).detach().cpu().numpy())
-        activations.append(getActivations(testInput, model))
 
         # Compare outputs
-        parallelLayers  = [None, None]
-        parallelLayers[0] = [
-                (1, 1),
-                (2, 3),
-                (4, 5),
-                (5, 7),
-                (7, 9),
-                (8, 11)
-        ]
-        parallelLayers[1] = [
-                (1, 1),
-                (2, 2),
-                (3, 4),
-                (5, 6),
-                (6, 7),
-                (7, 9),
-                (9, 11),
-                (10, 12),
-                (11, 14)
-        ]
-        classifierBeginning = [10, 13, 16]
-        classifierLength = 5
-
-        for i, parallel in enumerate(parallelLayers):
-            print("Step: %d" % i)
-            for oldLayer, newLayer in parallel:
-
-                oldActivations = activations[i][oldLayer]
-                newActivations = activations[i + 1][newLayer]
-                diff = maxDiff(oldActivations, newActivations)
-                print("%d, %d: %f" % (oldLayer, newLayer, diff))
-
-            for j in range(classifierLength):
-                
-                oldLayer = classifierBeginning[i] + j
-                newLayer = classifierBeginning[i + 1] + j
-                oldActivations = activations[i][oldLayer]
-                newActivations = activations[i + 1][newLayer]
-                diff = maxDiff(oldActivations, newActivations)
-                print("Classifier %d: %f" % (j, diff))
-
-        print(maxDiff(outputs[0], outputs[1]))
-        print(maxDiff(outputs[1], outputs[2]))
         self.assertTrue(np.allclose(outputs[1], outputs[2]))
         self.assertTrue(np.allclose(outputs[1], outputs[2]))
 
@@ -233,10 +186,10 @@ class TestGrowthController(unittest.TestCase):
         model = model.cuda()
 
         # Create test input
-        batchSize = 1
-        imageHeight = 4
-        imageWidth = 4
-        imageDepth = 2
+        batchSize = 8
+        imageHeight = 32
+        imageWidth = 32
+        imageDepth = 3
         Z = batchSize + imageHeight + imageWidth + imageDepth
         testInput = np.zeros([batchSize, imageDepth, imageHeight, imageWidth])
         for b in range(batchSize):
@@ -275,7 +228,7 @@ def getActivations(testInput, model):
 
 
 def maxDiff(arr1, arr2):
-    return np.average(np.absolute(arr1 - arr2))
+    return np.amax(np.absolute(arr1 - arr2))
 
 if __name__ == '__main__':
     unittest.main()
