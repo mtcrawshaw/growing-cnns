@@ -9,6 +9,7 @@ This is a list of all of the variations of the proposed method.
 - Transition methods (Vanilla, freeze old layers, different learning rates, weighted average)
 - Growth blocks (convolutional layer, resnet basic, resnet bottleneck, densenet, inception)
 - Stopping for each growth step (fixed number of epochs, early stopping, convergence)
+- Whether or not to copy batch norm parameters from previous layer
 
 Training techniques:
 - All the normal ones (batch norm, optimizer + optimizer params, etc)

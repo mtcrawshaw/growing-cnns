@@ -4,7 +4,7 @@
     "initialChannels": 64,
     "maxPools": 4,
     "convPerMaxPool": 3,
-    "classifierHiddenSize": 2048,
+    "classifierHiddenSize": 1024,
 
     "growthSteps": 3,
     "epochsPerStep": 1,
