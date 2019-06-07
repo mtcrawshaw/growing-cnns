@@ -1,5 +1,5 @@
 # growing-cnns
-PyTorch implementation of an training scheme for convolutional neural networks titled "Growing CNNs"
+PyTorch implementation of a training scheme for convolutional neural networks titled "Growing CNNs"
 
 ## Install
 This project requires Python 3.x and the following Python libraries:
