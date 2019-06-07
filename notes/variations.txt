@@ -12,6 +12,6 @@ This is a list of all of the variations of the proposed method.
 - Whether or not to copy batch norm parameters from previous layer
 
 Training techniques:
-- All the normal ones (batch norm, optimizer + optimizer params, etc)
-- Regularization techniques (dropfiler, dropblock, droppath, stochastic depth)
+- All the normal ones (batch norm, dropout, optimizer + optimizer params, etc)
+- New regularization techniques (dropfilter, dropblock, droppath, stochastic depth)
 - 
