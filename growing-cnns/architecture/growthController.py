@@ -1,6 +1,6 @@
 import math
 
-from model import CustomConvNet
+from .model import CustomConvNet
 
 """
     Growth Controller
@@ -8,7 +8,7 @@ from model import CustomConvNet
 
 class GrowthController():
 
-    def __init__(self, initialChannels=64, maxPools=4, convPerMaxPool=3,
+    def __init__(self, initialChannels=64, maxPools=4, convPerSection=3,
             growthSteps=3, numClasses=1000, batchNorm=True,
             classifierHiddenSize=2048):
         
@@ -19,7 +19,7 @@ class GrowthController():
 
         self.initialChannels = initialChannels
         self.maxPools = maxPools
-        self.convPerMaxPool = convPerMaxPool
+        self.convPerSection = convPerSection
         self.classifierHiddenSize = classifierHiddenSize
 
         # Define growth history, a list of the growth steps each layer was
@@ -43,22 +43,22 @@ class GrowthController():
             newModel = CustomConvNet(
                     initialChannels=self.initialChannels,
                     maxPools=self.maxPools,
-                    convPerMaxPool=self.convPerMaxPool,
+                    convPerSection=self.convPerSection,
                     numClasses=self.numClasses,
                     batchNorm=self.batchNorm,
                     classifierHiddenSize=self.classifierHiddenSize
             ) 
-            numLayers = self.maxPools * (self.convPerMaxPool + 1)
+            numLayers = self.maxPools * (self.convPerSection + 1)
             self.growthHistory = [0 for i in range(numLayers)]
             return newModel
 
         # Create new model
         self.currentStep += 1
-        self.convPerMaxPool += 1
+        self.convPerSection += 1
         newModel = CustomConvNet(
                 initialChannels=self.initialChannels,
                 maxPools=self.maxPools,
-                convPerMaxPool=self.convPerMaxPool,
+                convPerSection=self.convPerSection,
                 numClasses=self.numClasses,
                 batchNorm=self.batchNorm, 
                 classifierHiddenSize=self.classifierHiddenSize,
@@ -78,24 +78,24 @@ class GrowthController():
             the number of channels (before the width and height are halved by
             the max pool) so a new layer cannot be placed after the last layer.
             """
-            newLayerPos = self.convPerMaxPool - 2
+            newLayerPos = self.convPerSection - 2
             numLayersTransferred = 0
 
-            for j in range(self.convPerMaxPool):
+            for j in range(self.convPerSection):
 
                 if j == newLayerPos:
-                    self.growthHistory.insert(self.convPerMaxPool * i + j,
+                    self.growthHistory.insert(self.convPerSection * i + j,
                             self.currentStep)
                     continue
 
                 # Grab state dictionary from old layer
-                oldLayerIndex = self.convPerMaxPool * i + \
+                oldLayerIndex = self.convPerSection * i + \
                         numLayersTransferred
                 oldLayer = oldModel.features.__getitem__(oldLayerIndex)
                 oldStateDict = oldLayer.state_dict()
 
                 # Load old state dictionary into new layer
-                newLayerIndex = (self.convPerMaxPool + 1) * i + j
+                newLayerIndex = (self.convPerSection + 1) * i + j
                 newLayer = newModel.features.__getitem__(newLayerIndex)
                 newLayer.load_state_dict(oldStateDict)
                 numLayersTransferred += 1

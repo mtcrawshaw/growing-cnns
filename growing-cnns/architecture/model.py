@@ -1,23 +1,49 @@
 import math
+from collections import deque
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+from listModule import ListModule
 
 IMAGE_WIDTH = 32
 IMAGE_HEIGHT = 32
 
 class CustomConvNet(nn.Module):
 
-    def __init__(self, initialChannels=64, maxPools=4, convPerMaxPool=3,
+    def __init__(self, edges, convPerSection=3, initialChannels=64, maxPools=4,
             numClasses=1000, randomWeights=True, batchNorm=True,
             classifierHiddenSize=2048):
         super(CustomConvNet, self).__init__()
 
-        self.features = makeFeatures(initialChannels, maxPools,
-                convPerMaxPool, batchNorm=batchNorm)
+        # Parse edge list into adjacency list
+        self.edges = list(edges)
+        self.adjList = [[] for _ in range(convPerSection)]
+        self.revAdjList = [[] for _ in range(convPerSection)]
+        self.inDegree = [0 for _ in range(convPerSection)]
+        self.outDegree = [0 for _ in range(convPerSection)]
 
-        # Calculate size of self.features output
+        for s, e in edges:
+            self.inDegree[e] += 1
+            self.outDegree[s] += 1
+            self.adjList[s].append(e)
+            self.revAdjList[e].append(s)
+
+        # Node 0 is the input node, the last node in the list is the output
+        assert self.inDegree[0] == 0
+        assert self.outDegree[-1] == 0
+
+        # So that input to first node is input to forward (see sectionForward)
+        self.revAdjList[0].append(-1)
+
+        # Create sections
+        self.convPerSection = convPerSection
+        self.sections = makeSections(initialChannels, maxPools,
+                convPerSection, batchNorm=batchNorm)
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+
+        # Calculate size of output to classifier
         # This setting of hardcoding width and height is temporary, it should
         # be made dependent on the dataset.
         width = IMAGE_WIDTH / (2 ** maxPools)
@@ -36,17 +62,40 @@ class CustomConvNet(nn.Module):
         self._initializeWeights(randomWeights)
 
     def forward(self, x):
-        x = self.features(x)
+
+        for section in self.sections:
+            x = self.sectionForward(section, x)
+            x = self.pool(x)
+
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
         return x
+
+    def sectionForward(self, section, x):
+        
+        outputs = [None for _ in range(self.convPerSection)] + [x]
+        queue = deque([0])
+        inDegree = self.inDegree.copy()
+
+        while queue:
+            now = queue.popleft()
+            inputList = [outputs[i] for i in self.revAdjList[now]]
+            feed = torch.mean(torch.stack(inputList), dim=0)
+            outputs[now] = section[now](feed)
+            for v in self.adjList[now]:
+                inDegree[v] -= 1
+                if inDegree[v] == 0:
+                    queue.append(v)
+
+        # Returning output of last node
+        return outputs[-2]
 
     """
         If randomWeights is False, then the weights of the convolutional
         layers are initialized with the Dirac delta function, so that
         each convolutional layer calculates the identity function.
     """
-    def _initializeWeights(self, randomWeights=True):
+    def _initializeWeights(self, randomWeights):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 if randomWeights:
@@ -64,17 +113,21 @@ class CustomConvNet(nn.Module):
                 nn.init.constant_(m.bias, 0)
 
 """
-    Produces a pytorch Module for a network architecture described by
-    the argument cfg.
+    Produces a list of lists of modules, where each sublist corresponds to
+    a single section of the network architecture (a section is a sequence of
+    layers between two max pooling layers). 
 """
-def makeFeatures(initialChannels, maxPools, convPerMaxPool,
+def makeSections(initialChannels, maxPools, convPerMaxPool,
         batchNorm=True):
-    layers = []
+
+    sections = []
     inChannels = 3
 
     # Build up list of layers
     outChannels = initialChannels
     for i in range(maxPools):
+
+        sections.append([])
 
         # Convolutional layers between max pools
         for j in range(convPerMaxPool):
@@ -96,12 +149,11 @@ def makeFeatures(initialChannels, maxPools, convPerMaxPool,
 
             # Add layer to list of layers
             singleLayer = nn.Sequential(*singleLayer)
-            layers.append(singleLayer)
+            sections[-1].append(singleLayer)
 
             inChannels = outChannels
 
-        # Max pooling layer
-        layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
+        sections[-1] = ListModule(*sections[-1])
 
-    return nn.Sequential(*layers)
+    return ListModule(*sections)
 

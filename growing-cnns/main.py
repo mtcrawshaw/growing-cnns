@@ -22,7 +22,7 @@ import torchvision.datasets as datasets
 import torchvision.models as models
 
 import utils
-from growthController import GrowthController
+from architecture.growthController import GrowthController
 
 # Import small dataset
 sys.path.append('../data')
