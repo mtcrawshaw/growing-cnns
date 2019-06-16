@@ -61,14 +61,20 @@ class CustomConvNet(nn.Module):
 
         self._initializeWeights(randomWeights)
 
+
     def forward(self, x):
+        
+        x = convForward(self, x)
+        x = x.view(x.size(0), -1)
+        x = self.classifier(x)
+        return x
+
+    def convForward(self, x):
 
         for section in self.sections:
             x = self.sectionForward(section, x)
             x = self.pool(x)
 
-        x = x.view(x.size(0), -1)
-        x = self.classifier(x)
         return x
 
     def sectionForward(self, section, x):
