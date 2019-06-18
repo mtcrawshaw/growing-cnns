@@ -1,6 +1,7 @@
 import math
 
-from .model import CustomConvNet
+from model import CustomConvNet
+from computationGraph import ComputationGraph
 
 """
     Growth Controller
@@ -8,7 +9,7 @@ from .model import CustomConvNet
 
 class GrowthController():
 
-    def __init__(self, initialChannels=64, maxPools=4, convPerSection=3,
+    def __init__(self, initialChannels=64, maxPools=4, initialNumNodes=3,
             growthSteps=3, numClasses=1000, batchNorm=True,
             classifierHiddenSize=2048):
         
@@ -19,15 +20,12 @@ class GrowthController():
 
         self.initialChannels = initialChannels
         self.maxPools = maxPools
-        self.convPerSection = convPerSection
+        self.numNodes = initialNumNodes
         self.classifierHiddenSize = classifierHiddenSize
 
-        # Define growth history, a list of the growth steps each layer was
-        # inserted during. So on step 0, this list will be all zeroes and with
-        # length equal to the number of layers on iteration 0. On step 1, this
-        # list will contain mostly zeroes, with ones inserted at the positions
-        # where new layers were inserted during the growth step, etc.
-        self.growthHistory = []
+        # The ith element of growthHistory is the growth step during which the
+        # ith node of the current model's computation graph was inserted.
+        self.growthHistory = {}
 
     def step(self, oldModel=None):
         """
@@ -40,25 +38,27 @@ class GrowthController():
         # Initially creating model
         if self.currentStep == -1:
             self.currentStep = 0
+            compGraph = self.getInitialCompGraph()
             newModel = CustomConvNet(
+                    compGraph=compGraph,
                     initialChannels=self.initialChannels,
                     maxPools=self.maxPools,
-                    convPerSection=self.convPerSection,
                     numClasses=self.numClasses,
                     batchNorm=self.batchNorm,
                     classifierHiddenSize=self.classifierHiddenSize
             ) 
-            numLayers = self.maxPools * (self.convPerSection + 1)
-            self.growthHistory = [0 for i in range(numLayers)]
+            for i in compGraph.nodes:
+                self.growthHistory[i] = 0
             return newModel
 
         # Create new model
         self.currentStep += 1
-        self.convPerSection += 1
+        newCompGraph = self.growCompGraph(oldModel.compGraph)
+        self.numNodes = newCompGraph.numNodes
         newModel = CustomConvNet(
+                compGraph=newCompGraph,
                 initialChannels=self.initialChannels,
                 maxPools=self.maxPools,
-                convPerSection=self.convPerSection,
                 numClasses=self.numClasses,
                 batchNorm=self.batchNorm, 
                 classifierHiddenSize=self.classifierHiddenSize,
@@ -66,41 +66,82 @@ class GrowthController():
         )
 
         # Transfer weights from old model to new model
+        oldNodes = oldModel.compGraph.nodes
+        newNodes = newModel.compGraph.nodes
         for i in range(self.maxPools):
+            for j in newNodes:
 
-            """
-            Here we transfer weights into all layers of the new model between
-            the ith and (i + 1)th max pooling layer, other than the second to
-            last layer. The second to last layer will be initialized to
-            calculate the identity function, and it serves as the newly grown
-            layer. The reason that the second to last layer is the new one,
-            as opposed to the last layer, is because the last layer doubles
-            the number of channels (before the width and height are halved by
-            the max pool) so a new layer cannot be placed after the last layer.
-            """
-            newLayerPos = self.convPerSection - 2
-            numLayersTransferred = 0
+                if j in oldNodes:
 
-            for j in range(self.convPerSection):
+                    # Grab state dictionary from old layer
+                    oldLayer = oldModel.sections[i][j]
+                    oldStateDict = oldLayer.state_dict()
 
-                if j == newLayerPos:
-                    self.growthHistory.insert(self.convPerSection * i + j,
-                            self.currentStep)
-                    continue
+                    # Load old state dictionary into new layer
+                    newLayer = newModel.sections[i][j]
+                    newLayer.load_state_dict(oldStateDict)
 
-                # Grab state dictionary from old layer
-                oldLayerIndex = self.convPerSection * i + \
-                        numLayersTransferred
-                oldLayer = oldModel.features.__getitem__(oldLayerIndex)
-                oldStateDict = oldLayer.state_dict()
+                else:
 
-                # Load old state dictionary into new layer
-                newLayerIndex = (self.convPerSection + 1) * i + j
-                newLayer = newModel.features.__getitem__(newLayerIndex)
-                newLayer.load_state_dict(oldStateDict)
-                numLayersTransferred += 1
+                    # Update growth history
+                    self.growthHistory[j] = self.currentStep
+
 
         # Transfer classifier weights
         newModel.classifier.load_state_dict(oldModel.classifier.state_dict())
 
         return newModel
+
+    def getInitialCompGraph(self):
+
+        edges = [(i, i + 1) for i in range(self.numNodes - 1)]
+        inputIndex = 0
+        outputIndex = self.numNodes - 1
+        return ComputationGraph(edges, inputIndex, outputIndex)
+
+    def growCompGraph(self, compGraph):
+
+        # Find nodes in current computation graph
+        nodes = []
+        for start, end in compGraph.edges:
+            for node in start, end:
+                if node not in nodes:
+                    nodes.append(node)
+
+        # Find next available node
+        nextAvailableNode = 0
+        while nextAvailableNode in nodes:
+            nextAvailableNode += 1
+
+        # Find nodes to expand
+        nodesToExpand = list(compGraph.nodes)
+        nodesToKeep = [compGraph.inputIndex, compGraph.outputIndex]
+        for node in nodesToKeep:
+            if node in nodesToExpand:
+                nodesToExpand.remove(node)
+
+        # Expand nodes
+        newEdges = list(compGraph.edges)
+        for node in nodesToExpand:
+            
+            # Expand node
+            newNode = nextAvailableNode
+            nextAvailableNode += 1
+
+            tempEdges = []
+            for start, end in newEdges:
+
+                if node == start:
+                    tempEdges.append((start, newNode))
+                    tempEdges.append((newNode, end))
+                else:
+                    tempEdges.append((start, end))
+
+            newEdges = list(tempEdges)
+
+        newCompGraph = ComputationGraph(
+                newEdges,
+                compGraph.inputIndex,
+                compGraph.outputIndex
+        )
+        return newCompGraph

@@ -12,35 +12,40 @@ IMAGE_HEIGHT = 32
 
 class CustomConvNet(nn.Module):
 
-    def __init__(self, edges, convPerSection=3, initialChannels=64, maxPools=4,
+    def __init__(self, compGraph, initialChannels=64, maxPools=4,
             numClasses=1000, randomWeights=True, batchNorm=True,
             classifierHiddenSize=2048):
+
         super(CustomConvNet, self).__init__()
 
         # Parse edge list into adjacency list
-        self.edges = list(edges)
-        self.adjList = [[] for _ in range(convPerSection)]
-        self.revAdjList = [[] for _ in range(convPerSection)]
-        self.inDegree = [0 for _ in range(convPerSection)]
-        self.outDegree = [0 for _ in range(convPerSection)]
+        self.compGraph = compGraph.clone()
+        self.adjList = [[] for _ in range(self.compGraph.numNodes)]
+        self.revAdjList = [[] for _ in range(self.compGraph.numNodes)]
+        self.inDegree = [0 for _ in range(self.compGraph.numNodes)]
+        self.outDegree = [0 for _ in range(self.compGraph.numNodes)]
 
-        for s, e in edges:
+        for s, e in self.compGraph.edges:
             self.inDegree[e] += 1
             self.outDegree[s] += 1
             self.adjList[s].append(e)
             self.revAdjList[e].append(s)
 
-        # Node 0 is the input node, the last node in the list is the output
-        assert self.inDegree[0] == 0
-        assert self.outDegree[-1] == 0
+        # Check that input node has no parent nodes and output node has no
+        # child nodes
+        inputIndex = self.compGraph.inputIndex
+        outputIndex = self.compGraph.outputIndex
+        assert self.inDegree[inputIndex] == 0
+        assert self.outDegree[outputIndex] == 0
 
         # So that input to first node is input to forward (see sectionForward)
         self.revAdjList[0].append(-1)
 
         # Create sections
-        self.convPerSection = convPerSection
-        self.sections = makeSections(initialChannels, maxPools,
-                convPerSection, batchNorm=batchNorm)
+        self.initialChannels = initialChannels
+        self.maxPools = maxPools
+        self.batchNorm = batchNorm
+        self.sections = self.makeSections()
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
         # Calculate size of output to classifier
@@ -64,7 +69,7 @@ class CustomConvNet(nn.Module):
 
     def forward(self, x):
         
-        x = convForward(self, x)
+        x = self.convForward(x)
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
         return x
@@ -79,8 +84,10 @@ class CustomConvNet(nn.Module):
 
     def sectionForward(self, section, x):
         
-        outputs = [None for _ in range(self.convPerSection)] + [x]
-        queue = deque([0])
+        outputs = [None for _ in range(self.compGraph.numNodes)] + [x]
+        inputIndex = self.compGraph.inputIndex
+        outputIndex = self.compGraph.outputIndex
+        queue = deque([inputIndex])
         inDegree = self.inDegree.copy()
 
         while queue:
@@ -94,7 +101,7 @@ class CustomConvNet(nn.Module):
                     queue.append(v)
 
         # Returning output of last node
-        return outputs[-2]
+        return outputs[outputIndex]
 
     """
         If randomWeights is False, then the weights of the convolutional
@@ -105,7 +112,8 @@ class CustomConvNet(nn.Module):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 if randomWeights:
-                    nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                    nn.init.kaiming_normal_(m.weight, mode='fan_out',
+                            nonlinearity='relu')
                 else:
                     nn.init.dirac_(m.weight)
 
@@ -118,48 +126,51 @@ class CustomConvNet(nn.Module):
                 nn.init.normal_(m.weight, 0, 0.01)
                 nn.init.constant_(m.bias, 0)
 
-"""
-    Produces a list of lists of modules, where each sublist corresponds to
-    a single section of the network architecture (a section is a sequence of
-    layers between two max pooling layers). 
-"""
-def makeSections(initialChannels, maxPools, convPerMaxPool,
-        batchNorm=True):
+    """
+        Produces a list of lists of modules, where each sublist corresponds to
+        a single section of the network architecture (a section is a sequence of
+        layers between two max pooling layers). 
+    """
+    def makeSections(self):
 
-    sections = []
-    inChannels = 3
+        # Build up list of layers
+        sections = []
+        inChannels = 3
+        outChannels = self.initialChannels
 
-    # Build up list of layers
-    outChannels = initialChannels
-    for i in range(maxPools):
+        for i in range(self.maxPools):
 
-        sections.append([])
+            sections.append([])
 
-        # Convolutional layers between max pools
-        for j in range(convPerMaxPool):
-            singleLayer = []
+            # Convolutional layers between max pools
+            for j in range(self.compGraph.numNodes):
+                singleLayer = []
 
-            # Convolution (double number of channels before max pool)
-            if j == convPerMaxPool - 1:
-                outChannels *= 2
-            conv2d = nn.Conv2d(inChannels, outChannels, kernel_size=3,
-                    padding=1)
-            singleLayer.append(conv2d)
+                # Convolution (double number of channels before max pool)
+                channels = outChannels
+                if j == self.compGraph.outputIndex:
+                    channels *= 2
+                conv2d = nn.Conv2d(inChannels, channels, kernel_size=3,
+                        padding=1)
+                singleLayer.append(conv2d)
 
-            # Batch normalization
-            if batchNorm:
-                singleLayer.append(nn.BatchNorm2d(outChannels))
+                # Batch normalization
+                if self.batchNorm:
+                    singleLayer.append(nn.BatchNorm2d(channels))
 
-            # Relu
-            singleLayer.append(nn.ReLU(inplace=True))
+                # Relu
+                singleLayer.append(nn.ReLU(inplace=True))
 
-            # Add layer to list of layers
-            singleLayer = nn.Sequential(*singleLayer)
-            sections[-1].append(singleLayer)
+                # Add layer to list of layers
+                singleLayer = nn.Sequential(*singleLayer)
+                sections[-1].append(singleLayer)
 
-            inChannels = outChannels
+                inChannels = outChannels
 
-        sections[-1] = ListModule(*sections[-1])
+            inChannels *= 2
+            outChannels *= 2
 
-    return ListModule(*sections)
+            sections[-1] = ListModule(*sections[-1])
+
+        return ListModule(*sections)
 

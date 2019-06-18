@@ -5,33 +5,15 @@ import importlib
 import torch
 import numpy as np
 
+from testUtils import getTestInput
+
 sys.path.append('../growing-cnns/architecture')
 model = importlib.import_module('model')
+computationGraph = importlib.import_module('computationGraph')
 CustomConvNet = model.CustomConvNet
+ComputationGraph = computationGraph.ComputationGraph
 
 class TestModel(unittest.TestCase):
-
-    """
-        Helper function which generates an example input tensor
-    """
-    def getTestInput(self, inputShape):
-
-        # Create test input
-        batchSize = inputShape[0]
-        imageDepth = inputShape[1]
-        imageWidth = inputShape[2]
-        imageHeight = inputShape[3]
-
-        Z = batchSize + imageHeight + imageWidth + imageDepth
-        testInput = np.zeros([batchSize, imageDepth, imageHeight, imageWidth])
-        for b in range(batchSize):
-            for i in range(imageHeight):
-                for j in range(imageWidth):
-                    for k in range(imageDepth):
-                        testInput[b, k, i, j] = float(b + i + j + k)
-        testInput = torch.as_tensor(testInput, dtype=torch.float32)
-        return testInput
-
 
     """
         Tests whether CustomConvNet.forward calculates a forward pass
@@ -41,8 +23,11 @@ class TestModel(unittest.TestCase):
 
         # Create model
         args = {}
-        args['edges'] = [(0, 1), (1, 2)]
-        args['convPerSection'] = 3
+        args['compGraph'] = ComputationGraph(
+                [(0, 1), (1, 2)],
+                0,
+                2
+        )
         args['initialChannels'] = 8
         args['maxPools'] = 3
         args['numClasses'] = 1000
@@ -54,7 +39,7 @@ class TestModel(unittest.TestCase):
 
         # Create test input
         inputShape = [8, 3, 32, 32]
-        testInput = self.getTestInput(inputShape)
+        testInput = getTestInput(inputShape)
         testInput = testInput.cuda(0)
 
         # Run forward pass
@@ -83,8 +68,12 @@ class TestModel(unittest.TestCase):
 
         # Create model
         args = {}
-        args['edges'] = [(0, 1), (1, 2), (2, 3)]
-        args['convPerSection'] = 4
+        numNodes = 4
+        args['compGraph'] = ComputationGraph(
+                [(0, 1), (1, 2), (2, 3)],
+                0,
+                3
+        )
         args['initialChannels'] = 8
         args['maxPools'] = 3
         args['numClasses'] = 1000
@@ -103,7 +92,7 @@ class TestModel(unittest.TestCase):
 
         # Create test input
         inputShape = [8, 3, 32, 32]
-        testInput = self.getTestInput(inputShape)
+        testInput = getTestInput(inputShape)
         testInput = testInput.cuda(0)
 
         # Run forward pass
@@ -115,7 +104,7 @@ class TestModel(unittest.TestCase):
         outputShape[2] = outputShape[2] // (2 ** args['maxPools'])
         outputShape[3] = outputShape[3] // (2 ** args['maxPools'])
         expectedOutput = np.zeros(outputShape)
-        numTotalConv = args['convPerSection'] * args['maxPools']
+        numTotalConv = numNodes * args['maxPools']
         for b in range(outputShape[0]):
             for c in range(3):
                 for x in range(outputShape[2]):
@@ -134,9 +123,16 @@ class TestModel(unittest.TestCase):
 
         # Create model
         args = {}
-        args['edges'] = [(0, 1), (0, 2), (0, 3), (2, 4), (3, 5), (3, 6),
-                (4, 7), (5, 7), (7, 8), (6, 8), (8, 9), (1, 9)]
-        args['convPerSection'] = 10
+        numNodes = 10
+        edges = [
+            (0, 1), (0, 2), (0, 3), (2, 4), (3, 5), (3, 6),
+            (4, 7), (5, 7), (7, 8), (6, 8), (8, 9), (1, 9)
+        ]
+        args['compGraph'] = ComputationGraph(
+                edges,
+                0,
+                9
+        )
         args['initialChannels'] = 8
         args['maxPools'] = 3
         args['numClasses'] = 1000
@@ -161,7 +157,7 @@ class TestModel(unittest.TestCase):
         ]
         stateDict = model.state_dict()
         for section in range(args['maxPools']):
-            for nodeIndex in range(args['convPerSection']):
+            for nodeIndex in range(numNodes):
             
                 keyPrefix = 'sections.%d.%d.0.' % (section, nodeIndex)
                 weightKey = keyPrefix + 'weight'
@@ -180,7 +176,7 @@ class TestModel(unittest.TestCase):
 
         # Create test input
         inputShape = [8, 3, 32, 32]
-        testInput = self.getTestInput(inputShape)
+        testInput = getTestInput(inputShape)
         testInput = testInput.cuda(0)
 
         # Run forward pass
@@ -192,7 +188,7 @@ class TestModel(unittest.TestCase):
         outputShape[2] = outputShape[2] // (2 ** args['maxPools'])
         outputShape[3] = outputShape[3] // (2 ** args['maxPools'])
         expectedOutput = np.zeros(outputShape)
-        numTotalConv = args['convPerSection'] * args['maxPools']
+        numTotalConv = numNodes * args['maxPools']
         for b in range(outputShape[0]):
             for c in range(3):
                 for x in range(outputShape[2]):
