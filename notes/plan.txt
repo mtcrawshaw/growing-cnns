@@ -1,8 +1,7 @@
 Cards:
 Modify model and growth controller to use adjacency matrix (use this https://github.com/seungwonpark/RandWireNN/blob/master/model/dag_layer.py)
-- Add growth method 1
-- Remove convPerSection parameter (use info from edges instead)
 - Clarify section terminology
+- Test case for growth history
 - Comment
 Add skip growth method
 Add branching growth method

@@ -3,7 +3,7 @@
 
     "initialChannels": 8,
     "maxPools": 2,
-    "convPerMaxPool": 2,
+    "initialNumNodes": 2,
     "classifierHiddenSize": 128,
 
     "growthSteps": 3,
@@ -17,5 +17,5 @@
 
     "lrDecayEpochStep": 1,
     "lrDecayEpochRatio": 0.1,
-    "lrDecayGrowthRatio": 0.1
+    "lrDecayGrowthRatio": 1.0
 }

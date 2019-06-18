@@ -30,18 +30,20 @@ def adjustLearningRate(optimizer, lrDecayRatio):
 
 """
     Returns optimizer parameters for the beginning of each growth step. The
-    learning rate for a given layer decreases by a factor of 10 for each growth
-    step that has passed since that layer was introduced to the network.
+    learning rate for a given layer decreases by a factor of lrGrowthDecay for
+    each growth step that has passed since that layer was introduced to the
+    network.
 """
 def getInitialOptimizerParams(model, growthHistory, initialLR,
         lrGrowthDecay, growthStep):
     optimizerParams = []
 
-    for i, layerStep in enumerate(growthHistory):
-        lr = initialLR * (lrGrowthDecay ** (growthStep - layerStep))
-        optimizerParams.append({
-            'params': model.features.__getitem__(i).parameters(),
-            'lr': lr})
+    for section in range(model.maxPools):
+        for i, layerStep in growthHistory.items():
+            lr = initialLR * (lrGrowthDecay ** (growthStep - layerStep))
+            optimizerParams.append({
+                'params': model.sections[section][i].parameters(),
+                'lr': lr})
 
     classifierLR = initialLR * (lrGrowthDecay ** growthStep)
     optimizerParams.append({'params': model.classifier.parameters(),

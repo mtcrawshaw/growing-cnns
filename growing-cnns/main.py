@@ -185,7 +185,7 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
     growthController = GrowthController(
             settings['initialChannels'],
             settings['maxPools'],
-            settings['convPerMaxPool'],
+            settings['initialNumNodes'],
             settings['growthSteps'],
             numClasses,
             settings['batchNorm'],
@@ -269,7 +269,7 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
         for epoch in range(settings['epochsPerStep']):
             if epoch > 0 and epoch % settings['lrDecayEpochStep'] == 0:
                 utils.adjustLearningRate(optimizer,
-                settings['lrDecayEpochRatio'])
+                        settings['lrDecayEpochRatio'])
 
             # train for one epoch
             train(trainLoader, model, criterion, optimizer, epoch, args, trainResults, growthStep=i)
