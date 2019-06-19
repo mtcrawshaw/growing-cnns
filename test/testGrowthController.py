@@ -205,6 +205,50 @@ class TestGrowthController(unittest.TestCase):
             difference = actual ^ expected
             assert len(difference) == 0
 
+    """
+        Tests whether the growth controller calculates the correct growth
+        history.
+    """
+    def testGrowthStepHistory(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['maxPools'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['classifierHiddenSize'] = 128
+        controller = GrowthController(**args)
+
+        actualHistory = []
+        expectedHistory = []
+
+        # Initialize model
+        model = controller.step()
+        model = model.cuda(0)
+        actualHistory.append(dict(controller.growthHistory))
+        expectedHistory.append({0: 0, 1: 0, 2: 0})
+
+        # Growth step 1
+        model = controller.step(oldModel=model)
+        model = model.cuda(0)
+        actualHistory.append(dict(controller.growthHistory))
+        expectedHistory.append({0: 0, 1: 0, 2: 0, 3: 1})
+
+        # Growth step 2
+        model = controller.step(oldModel=model)
+        model = model.cuda(0)
+        actualHistory.append(dict(controller.growthHistory))
+        expectedHistory.append({0: 0, 1: 0, 2: 0, 3: 1, 4: 2, 5: 2})
+
+        # Compare outputs
+        for i in range(3):
+            actual = dict(actualHistory[i])
+            expected = dict(expectedHistory[i])
+            assert actual == expected
+
     def testDirac(self):
 
         # Initialize model
