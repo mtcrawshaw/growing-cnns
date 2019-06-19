@@ -25,7 +25,7 @@ class AverageMeter(object):
     lrDecayStep epochs
 """
 def adjustLearningRate(optimizer, lrDecayRatio):
-    for paramGroup in optimizer.paramGroups:
+    for paramGroup in optimizer.param_groups:
         paramGroup['lr'] *= lrDecayRatio
 
 """

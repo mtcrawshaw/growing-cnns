@@ -1,13 +1,17 @@
 {
     "growing": false,
 
-    "pretrained": false,
-    "arch": "vgg16",
+    "initialChannels": 64,
+    "numSections": 4,
+    "numNodes": 3,
+    "classifierHiddenSize": 1024,
 
-    "epochs": 1,
-    "batch_size": 64,
-    "initial_learning_rate": 0.01,
+    "epochs": 3,
+    "batchSize": 64,
+    "initialLearningRate": 0.01,
+    "lrDecayStep": 1,
+    "lrDecayRatio": 0.1,
     "momentum": 0.9,
-    "weight_decay": 1e-4,
-    "batch_normalization": true
+    "weightDecay": 1e-4,
+    "batchNorm": true
 }

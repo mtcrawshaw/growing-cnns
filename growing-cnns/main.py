@@ -22,7 +22,9 @@ import torchvision.datasets as datasets
 import torchvision.models as models
 
 import utils
+from architecture.model import CustomConvNet
 from architecture.growthController import GrowthController
+from architecture.computationGraph import ComputationGraph
 
 # Import small dataset
 sys.path.append('../data')
@@ -117,13 +119,18 @@ def main(args):
 def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
 
     # Create model
-    if settings['pretrained']:
-        print("=> using pre-trained model '{}'".format(settings['arch']))
-        model = models.__dict__[settings['arch']](pretrained=True, numClasses=numClasses)
-    else:
-        print("=> creating model '{}'".format(settings['arch']))
-        model = models.__dict__[settings['arch']](numClasses=numClasses)
-
+    edges = [(i, i + 1) for i in range(settings['numNodes'] - 1)]
+    inputIndex = 0
+    outputIndex = settings['numNodes'] - 1
+    compGraph = ComputationGraph(edges, inputIndex, outputIndex)
+    model = CustomConvNet(
+            compGraph=compGraph,
+            initialChannels=settings['initialChannels'],
+            numSections=settings['numSections'],
+            numClasses=numClasses,
+            batchNorm=settings['batchNorm'],
+            classifierHiddenSize=settings['classifierHiddenSize']
+    )
     model = model.cuda(args.gpu)
 
     # Create optimizer
@@ -153,8 +160,8 @@ def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
     # Training loop
     bestAcc1 = 0
     for epoch in range(settings['epochs']):
-        if epoch > 0 and epoch % settings['lrDecayEpochStep'] == 0:
-            utils.adjustLearningRate(optimizer, settings['lrDecayEpochRatio'])
+        if epoch > 0 and epoch % settings['lrDecayStep'] == 0:
+            utils.adjustLearningRate(optimizer, settings['lrDecayRatio'])
 
         # Train for one epoch
         train(trainLoader, model, criterion, optimizer, epoch, args, trainResults)
@@ -256,14 +263,18 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
 
         model = model.cuda(args.gpu)
 
-        optimizerParams = utils.getInitialOptimizerParams(model,
+        optimizerParams = utils.getInitialOptimizerParams(
+                model,
                 growthController.growthHistory,
                 settings['initialLearningRate'],
                 settings['lrDecayGrowthRatio'], 
-                i)
-        optimizer = torch.optim.SGD(optimizerParams,
+                i
+        )
+        optimizer = torch.optim.SGD(
+                optimizerParams,
                 momentum=settings['momentum'],
-                weight_decay=settings['weightDecay'])
+                weight_decay=settings['weightDecay']
+        )
 
         # Inner training loop
         for epoch in range(settings['epochsPerStep']):
