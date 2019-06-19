@@ -25,6 +25,7 @@ import utils
 from architecture.model import CustomConvNet
 from architecture.growthController import GrowthController
 from architecture.computationGraph import ComputationGraph
+from architecture.graphOperations import getInitialCompGraph, growCompGraph
 
 # Import small dataset
 sys.path.append('../data')
@@ -119,10 +120,7 @@ def main(args):
 def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
 
     # Create model
-    edges = [(i, i + 1) for i in range(settings['numNodes'] - 1)]
-    inputIndex = 0
-    outputIndex = settings['numNodes'] - 1
-    compGraph = ComputationGraph(edges, inputIndex, outputIndex)
+    compGraph = getInitialCompGraph(settings['numNodes'])
     model = CustomConvNet(
             compGraph=compGraph,
             initialChannels=settings['initialChannels'],

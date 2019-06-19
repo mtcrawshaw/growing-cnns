@@ -3,10 +3,10 @@ import math
 # This is in case no parent packages are imported, such as in the test cases
 try:
     from .model import CustomConvNet
-    from .computationGraph import ComputationGraph
+    from .graphOperations import getInitialCompGraph, growCompGraph
 except:
     from model import CustomConvNet
-    from computationGraph import ComputationGraph
+    from graphOperations import getInitialCompGraph, growCompGraph
 
 """
     Growth Controller
@@ -43,7 +43,7 @@ class GrowthController():
         # Initially creating model
         if self.currentStep == -1:
             self.currentStep = 0
-            compGraph = self.getInitialCompGraph()
+            compGraph = getInitialCompGraph(self.numNodes)
             newModel = CustomConvNet(
                     compGraph=compGraph,
                     initialChannels=self.initialChannels,
@@ -58,7 +58,7 @@ class GrowthController():
 
         # Create new model
         self.currentStep += 1
-        newCompGraph = self.growCompGraph(oldModel.compGraph)
+        newCompGraph = growCompGraph(oldModel.compGraph)
         self.numNodes = newCompGraph.numNodes
         newModel = CustomConvNet(
                 compGraph=newCompGraph,
@@ -97,66 +97,3 @@ class GrowthController():
 
         return newModel
 
-    """
-        Builds a computation graph which is a sequence of nodes,
-        each node has input degree one and output degree one.
-    """
-    def getInitialCompGraph(self):
-
-        edges = [(i, i + 1) for i in range(self.numNodes - 1)]
-        inputIndex = 0
-        outputIndex = self.numNodes - 1
-        return ComputationGraph(edges, inputIndex, outputIndex)
-
-
-    """
-        From a given computation graph, builds a returns a "grown" version,
-        where new nodes are inserted after each node other than the input node
-        and the output node.
-    """
-    def growCompGraph(self, compGraph):
-
-        # Find nodes in current computation graph
-        nodes = []
-        for start, end in compGraph.edges:
-            for node in start, end:
-                if node not in nodes:
-                    nodes.append(node)
-
-        # Find next available node
-        nextAvailableNode = 0
-        while nextAvailableNode in nodes:
-            nextAvailableNode += 1
-
-        # Find nodes to expand
-        nodesToExpand = list(compGraph.nodes)
-        nodesToKeep = [compGraph.inputIndex, compGraph.outputIndex]
-        for node in nodesToKeep:
-            if node in nodesToExpand:
-                nodesToExpand.remove(node)
-
-        # Expand nodes
-        newEdges = list(compGraph.edges)
-        for node in nodesToExpand:
-            
-            # Expand node
-            newNode = nextAvailableNode
-            nextAvailableNode += 1
-
-            tempEdges = []
-            for start, end in newEdges:
-
-                if node == start:
-                    tempEdges.append((start, newNode))
-                    tempEdges.append((newNode, end))
-                else:
-                    tempEdges.append((start, end))
-
-            newEdges = list(tempEdges)
-
-        newCompGraph = ComputationGraph(
-                newEdges,
-                compGraph.inputIndex,
-                compGraph.outputIndex
-        )
-        return newCompGraph
