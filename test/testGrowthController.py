@@ -78,9 +78,10 @@ class TestGrowthController(unittest.TestCase):
     def testGrowthStepWeights(self):
 
         args = {}
-        args['growthSteps'] = 3
         args['initialChannels'] = 8
         args['maxPools'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
         args['classifierHiddenSize'] = 128
@@ -116,7 +117,6 @@ class TestGrowthController(unittest.TestCase):
         self.assertEqualClassifier(stateDicts[1], stateDicts[2])
 
 
-
     """
         Tests whether a model and the resulting model after a growth step
         calculate the same output given the same input.
@@ -125,9 +125,10 @@ class TestGrowthController(unittest.TestCase):
 
         # Create growth controller
         args = {}
-        args['growthSteps'] = 3
         args['initialChannels'] = 8
         args['maxPools'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
         args['classifierHiddenSize'] = 128
@@ -158,6 +159,51 @@ class TestGrowthController(unittest.TestCase):
         self.assertTrue(np.allclose(outputs[0], outputs[1], atol=1e-7))
         self.assertTrue(np.allclose(outputs[1], outputs[2], atol=1e-7))
 
+
+    """
+        Tests whether the growth controller expands the edges in a computation
+        graph correctly.
+    """
+    def testGrowthStepEdges(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['maxPools'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['classifierHiddenSize'] = 128
+        controller = GrowthController(**args)
+
+        actualEdges = []
+        expectedEdges = []
+
+        # Initialize model
+        model = controller.step()
+        model = model.cuda(0)
+        actualEdges.append(list(model.compGraph.edges))
+        expectedEdges.append([(0, 1), (1, 2)])
+
+        # Growth step 1
+        model = controller.step(oldModel=model)
+        model = model.cuda(0)
+        actualEdges.append(list(model.compGraph.edges))
+        expectedEdges.append([(0, 1), (1, 3), (3, 2)])
+
+        # Growth step 2
+        model = controller.step(oldModel=model)
+        model = model.cuda(0)
+        actualEdges.append(list(model.compGraph.edges))
+        expectedEdges.append([(0, 1), (1, 4), (4, 3), (3, 5), (5, 2)])
+
+        # Compare outputs
+        for i in range(3):
+            actual = set(actualEdges[i])
+            expected = set(expectedEdges[i])
+            difference = actual ^ expected
+            assert len(difference) == 0
 
     def testDirac(self):
 
