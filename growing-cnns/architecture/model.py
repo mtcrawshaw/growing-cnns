@@ -60,6 +60,7 @@ class CustomConvNet(nn.Module):
         depth = initialChannels * (2 ** numSections)
         outputSize = int(width * height * depth)
 
+        # Create classifier
         self.classifier = nn.Sequential(
             nn.Linear(outputSize, classifierHiddenSize), 
             nn.ReLU(True),
@@ -68,6 +69,7 @@ class CustomConvNet(nn.Module):
             nn.Linear(classifierHiddenSize, numClasses),
         )
 
+        # Initialize weights
         self._initializeWeights(randomWeights)
 
 

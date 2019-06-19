@@ -1,6 +1,12 @@
 import torch
 import torch.nn as nn
 
+"""
+    Helper object to store lists of modules within a module. nn.Sequential
+    won't do for us because we won't be accessing the modules in the list
+    in order, and a regular list of modules won't do for us because lists
+    of modules are not included in a module's set of child modules.
+"""
 class ListModule(nn.Module):
     def __init__(self, *args):
         super(ListModule, self).__init__()

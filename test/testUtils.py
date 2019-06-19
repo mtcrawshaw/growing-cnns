@@ -1,6 +1,9 @@
 import torch
 import numpy as np
 
+"""
+    Creates a tensor of shape inputShape to be used as a dummy input.
+"""
 def getTestInput(inputShape):
 
         # Create test input

@@ -1,11 +1,9 @@
 Cards:
-Modify model and growth controller to use adjacency matrix (use this https://github.com/seungwonpark/RandWireNN/blob/master/model/dag_layer.py)
-- Clarify section terminology
-- Comment
 Add skip growth method
 Add branching growth method
 
 Future stuff:
+Get runStatic to use CustomConvNet
 Add ImageNet + other datasets
 Parallelize across multiple GPUs
 Add different block types

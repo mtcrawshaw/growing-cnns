@@ -1,6 +1,6 @@
 """
-    This is just a helper class to wrap a list of edges together
-    with the index of the input node and the index of the output node.
+    Helper class to wrap a list of edges together with the index of the input
+    node and the index of the output node.
 """
 class ComputationGraph:
 

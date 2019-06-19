@@ -97,6 +97,10 @@ class GrowthController():
 
         return newModel
 
+    """
+        Builds a computation graph which is a sequence of nodes,
+        each node has input degree one and output degree one.
+    """
     def getInitialCompGraph(self):
 
         edges = [(i, i + 1) for i in range(self.numNodes - 1)]
@@ -104,6 +108,12 @@ class GrowthController():
         outputIndex = self.numNodes - 1
         return ComputationGraph(edges, inputIndex, outputIndex)
 
+
+    """
+        From a given computation graph, builds a returns a "grown" version,
+        where new nodes are inserted after each node other than the input node
+        and the output node.
+    """
     def growCompGraph(self, compGraph):
 
         # Find nodes in current computation graph
