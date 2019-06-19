@@ -184,7 +184,7 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
     # Create growth controller
     growthController = GrowthController(
             settings['initialChannels'],
-            settings['maxPools'],
+            settings['numSections'],
             settings['initialNumNodes'],
             settings['growthSteps'],
             numClasses,

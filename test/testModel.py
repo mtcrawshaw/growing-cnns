@@ -29,7 +29,7 @@ class TestModel(unittest.TestCase):
                 2
         )
         args['initialChannels'] = 8
-        args['maxPools'] = 3
+        args['numSections'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
         args['classifierHiddenSize'] = 128
@@ -47,16 +47,16 @@ class TestModel(unittest.TestCase):
 
         # Build expected output
         outputShape = list(inputShape)
-        outputShape[1] = args['initialChannels'] * (2 ** args['maxPools'])
-        outputShape[2] = outputShape[2] // (2 ** args['maxPools'])
-        outputShape[3] = outputShape[3] // (2 ** args['maxPools'])
+        outputShape[1] = args['initialChannels'] * (2 ** args['numSections'])
+        outputShape[2] = outputShape[2] // (2 ** args['numSections'])
+        outputShape[3] = outputShape[3] // (2 ** args['numSections'])
         expectedOutput = np.zeros(outputShape)
         for b in range(outputShape[0]):
             for c in range(3):
                 for x in range(outputShape[2]):
                     for y in range(outputShape[3]):
-                        maxX = (x + 1) * (2 ** args['maxPools']) - 1
-                        maxY = (y + 1) * (2 ** args['maxPools']) - 1
+                        maxX = (x + 1) * (2 ** args['numSections']) - 1
+                        maxY = (y + 1) * (2 ** args['numSections']) - 1
                         expectedOutput[b, c, x, y] = b + c + maxX + maxY
 
         # Test output
@@ -75,7 +75,7 @@ class TestModel(unittest.TestCase):
                 3
         )
         args['initialChannels'] = 8
-        args['maxPools'] = 3
+        args['numSections'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
         args['classifierHiddenSize'] = 128
@@ -100,17 +100,17 @@ class TestModel(unittest.TestCase):
 
         # Build expected output
         outputShape = list(inputShape)
-        outputShape[1] = args['initialChannels'] * (2 ** args['maxPools'])
-        outputShape[2] = outputShape[2] // (2 ** args['maxPools'])
-        outputShape[3] = outputShape[3] // (2 ** args['maxPools'])
+        outputShape[1] = args['initialChannels'] * (2 ** args['numSections'])
+        outputShape[2] = outputShape[2] // (2 ** args['numSections'])
+        outputShape[3] = outputShape[3] // (2 ** args['numSections'])
         expectedOutput = np.zeros(outputShape)
-        numTotalConv = numNodes * args['maxPools']
+        numTotalConv = numNodes * args['numSections']
         for b in range(outputShape[0]):
             for c in range(3):
                 for x in range(outputShape[2]):
                     for y in range(outputShape[3]):
-                        maxX = (x + 1) * (2 ** args['maxPools']) - 1
-                        maxY = (y + 1) * (2 ** args['maxPools']) - 1
+                        maxX = (x + 1) * (2 ** args['numSections']) - 1
+                        maxY = (y + 1) * (2 ** args['numSections']) - 1
                         expectedOutput[b, c, x, y] = b + c + maxX + maxY
                         expectedOutput[b, c, x, y] *= 2 ** numTotalConv
 
@@ -134,7 +134,7 @@ class TestModel(unittest.TestCase):
                 9
         )
         args['initialChannels'] = 8
-        args['maxPools'] = 3
+        args['numSections'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
         args['classifierHiddenSize'] = 128
@@ -156,7 +156,7 @@ class TestModel(unittest.TestCase):
                 (3., 5.)
         ]
         stateDict = model.state_dict()
-        for section in range(args['maxPools']):
+        for section in range(args['numSections']):
             for nodeIndex in range(numNodes):
             
                 keyPrefix = 'sections.%d.%d.0.' % (section, nodeIndex)
@@ -184,20 +184,20 @@ class TestModel(unittest.TestCase):
 
         # Build expected output
         outputShape = list(inputShape)
-        outputShape[1] = args['initialChannels'] * (2 ** args['maxPools'])
-        outputShape[2] = outputShape[2] // (2 ** args['maxPools'])
-        outputShape[3] = outputShape[3] // (2 ** args['maxPools'])
+        outputShape[1] = args['initialChannels'] * (2 ** args['numSections'])
+        outputShape[2] = outputShape[2] // (2 ** args['numSections'])
+        outputShape[3] = outputShape[3] // (2 ** args['numSections'])
         expectedOutput = np.zeros(outputShape)
-        numTotalConv = numNodes * args['maxPools']
+        numTotalConv = numNodes * args['numSections']
         for b in range(outputShape[0]):
             for c in range(3):
                 for x in range(outputShape[2]):
                     for y in range(outputShape[3]):
-                        maxX = (x + 1) * (2 ** args['maxPools']) - 1
-                        maxY = (y + 1) * (2 ** args['maxPools']) - 1
+                        maxX = (x + 1) * (2 ** args['numSections']) - 1
+                        maxY = (y + 1) * (2 ** args['numSections']) - 1
                         expectedOutput[b, c, x, y] = b + c + maxX + maxY
 
-                        for i in range(args['maxPools']):
+                        for i in range(args['numSections']):
                             expectedOutput[b, c, x, y] *= 81. / 16.
                             expectedOutput[b, c, x, y] += 65. / 16.
 

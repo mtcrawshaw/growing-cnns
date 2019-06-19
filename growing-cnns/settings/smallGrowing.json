@@ -2,7 +2,7 @@
     "growing": true,
 
     "initialChannels": 8,
-    "maxPools": 2,
+    "numSections": 2,
     "initialNumNodes": 2,
     "classifierHiddenSize": 128,
 

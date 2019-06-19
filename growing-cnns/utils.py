@@ -38,7 +38,7 @@ def getInitialOptimizerParams(model, growthHistory, initialLR,
         lrGrowthDecay, growthStep):
     optimizerParams = []
 
-    for section in range(model.maxPools):
+    for section in range(model.numSections):
         for i, layerStep in growthHistory.items():
             lr = initialLR * (lrGrowthDecay ** (growthStep - layerStep))
             optimizerParams.append({

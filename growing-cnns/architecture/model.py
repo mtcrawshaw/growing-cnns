@@ -16,7 +16,7 @@ IMAGE_HEIGHT = 32
 
 class CustomConvNet(nn.Module):
 
-    def __init__(self, compGraph, initialChannels=64, maxPools=4,
+    def __init__(self, compGraph, initialChannels=64, numSections=4,
             numClasses=1000, randomWeights=True, batchNorm=True,
             classifierHiddenSize=2048):
 
@@ -47,7 +47,7 @@ class CustomConvNet(nn.Module):
 
         # Create sections
         self.initialChannels = initialChannels
-        self.maxPools = maxPools
+        self.numSections = numSections
         self.batchNorm = batchNorm
         self.sections = self.makeSections()
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
@@ -55,9 +55,9 @@ class CustomConvNet(nn.Module):
         # Calculate size of output to classifier
         # This setting of hardcoding width and height is temporary, it should
         # be made dependent on the dataset.
-        width = IMAGE_WIDTH / (2 ** maxPools)
-        height = IMAGE_HEIGHT / (2 ** maxPools)
-        depth = initialChannels * (2 ** maxPools)
+        width = IMAGE_WIDTH / (2 ** numSections)
+        height = IMAGE_HEIGHT / (2 ** numSections)
+        depth = initialChannels * (2 ** numSections)
         outputSize = int(width * height * depth)
 
         self.classifier = nn.Sequential(
@@ -142,7 +142,7 @@ class CustomConvNet(nn.Module):
         inChannels = 3
         outChannels = self.initialChannels
 
-        for i in range(self.maxPools):
+        for i in range(self.numSections):
 
             sections.append([])
 

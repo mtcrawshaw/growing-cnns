@@ -79,7 +79,7 @@ class TestGrowthController(unittest.TestCase):
 
         args = {}
         args['initialChannels'] = 8
-        args['maxPools'] = 3
+        args['numSections'] = 3
         args['initialNumNodes'] = 3
         args['growthSteps'] = 3
         args['numClasses'] = 1000
@@ -108,12 +108,12 @@ class TestGrowthController(unittest.TestCase):
 
         # Compare features and classifier for steps 0 and 1
         self.assertEqualLayers(stateDicts[0], stateDicts[1], nodes[0],
-                args['maxPools'])
+                args['numSections'])
         self.assertEqualClassifier(stateDicts[0], stateDicts[1])
 
         # Compare features and classifier for steps 1 and 2
         self.assertEqualLayers(stateDicts[1], stateDicts[2], nodes[1],
-                args['maxPools'])
+                args['numSections'])
         self.assertEqualClassifier(stateDicts[1], stateDicts[2])
 
 
@@ -126,7 +126,7 @@ class TestGrowthController(unittest.TestCase):
         # Create growth controller
         args = {}
         args['initialChannels'] = 8
-        args['maxPools'] = 3
+        args['numSections'] = 3
         args['initialNumNodes'] = 3
         args['growthSteps'] = 3
         args['numClasses'] = 1000
@@ -169,7 +169,7 @@ class TestGrowthController(unittest.TestCase):
         # Create growth controller
         args = {}
         args['initialChannels'] = 8
-        args['maxPools'] = 3
+        args['numSections'] = 3
         args['initialNumNodes'] = 3
         args['growthSteps'] = 3
         args['numClasses'] = 1000
@@ -214,7 +214,7 @@ class TestGrowthController(unittest.TestCase):
         # Create growth controller
         args = {}
         args['initialChannels'] = 8
-        args['maxPools'] = 3
+        args['numSections'] = 3
         args['initialNumNodes'] = 3
         args['growthSteps'] = 3
         args['numClasses'] = 1000

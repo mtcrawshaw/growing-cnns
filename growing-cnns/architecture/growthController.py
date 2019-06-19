@@ -14,7 +14,7 @@ except:
 
 class GrowthController():
 
-    def __init__(self, initialChannels=64, maxPools=4, initialNumNodes=3,
+    def __init__(self, initialChannels=64, numSections=4, initialNumNodes=3,
             growthSteps=3, numClasses=1000, batchNorm=True,
             classifierHiddenSize=2048):
         
@@ -24,7 +24,7 @@ class GrowthController():
         self.currentStep = -1
 
         self.initialChannels = initialChannels
-        self.maxPools = maxPools
+        self.numSections = numSections
         self.numNodes = initialNumNodes
         self.classifierHiddenSize = classifierHiddenSize
 
@@ -47,7 +47,7 @@ class GrowthController():
             newModel = CustomConvNet(
                     compGraph=compGraph,
                     initialChannels=self.initialChannels,
-                    maxPools=self.maxPools,
+                    numSections=self.numSections,
                     numClasses=self.numClasses,
                     batchNorm=self.batchNorm,
                     classifierHiddenSize=self.classifierHiddenSize
@@ -63,7 +63,7 @@ class GrowthController():
         newModel = CustomConvNet(
                 compGraph=newCompGraph,
                 initialChannels=self.initialChannels,
-                maxPools=self.maxPools,
+                numSections=self.numSections,
                 numClasses=self.numClasses,
                 batchNorm=self.batchNorm, 
                 classifierHiddenSize=self.classifierHiddenSize,
@@ -73,7 +73,7 @@ class GrowthController():
         # Transfer weights from old model to new model
         oldNodes = oldModel.compGraph.nodes
         newNodes = newModel.compGraph.nodes
-        for i in range(self.maxPools):
+        for i in range(self.numSections):
             for j in newNodes:
 
                 if j in oldNodes:
