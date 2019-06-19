@@ -1,7 +1,12 @@
 import math
 
-from model import CustomConvNet
-from computationGraph import ComputationGraph
+# This is in case no parent packages are imported, such as in the test cases
+try:
+    from .model import CustomConvNet
+    from .computationGraph import ComputationGraph
+except:
+    from model import CustomConvNet
+    from computationGraph import ComputationGraph
 
 """
     Growth Controller
