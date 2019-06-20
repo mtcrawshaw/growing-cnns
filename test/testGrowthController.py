@@ -234,7 +234,7 @@ class TestGrowthController(unittest.TestCase):
 
         # Compare outputs
         for i in range(args['growthSteps'] - 1):
-            self.assertTrue(np.allclose(outputs[i], outputs[i + 1], atol=1e-7))
+            self.assertTrue(np.allclose(outputs[i], outputs[i + 1], atol=1e-6))
 
 
     """

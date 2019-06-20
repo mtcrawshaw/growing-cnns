@@ -55,19 +55,14 @@ class CustomConvNet(nn.Module):
         # Calculate size of output to classifier
         # This setting of hardcoding width and height is temporary, it should
         # be made dependent on the dataset.
-        width = IMAGE_WIDTH / (2 ** numSections)
-        height = IMAGE_HEIGHT / (2 ** numSections)
-        depth = initialChannels * (2 ** numSections)
-        outputSize = int(width * height * depth)
+        width = int(IMAGE_WIDTH / (2 ** numSections))
+        height = int(IMAGE_HEIGHT / (2 ** numSections))
+        depth = int(initialChannels * (2 ** numSections))
+        outputSize = width * height * depth
 
         # Create classifier
-        self.classifier = nn.Sequential(
-            nn.Linear(outputSize, classifierHiddenSize), 
-            nn.ReLU(True),
-            nn.Linear(classifierHiddenSize, classifierHiddenSize), 
-            nn.ReLU(True),
-            nn.Linear(classifierHiddenSize, numClasses),
-        )
+        self.avgPool = nn.AvgPool2d(width)
+        self.classifier = nn.Linear(depth, numClasses)
 
         # Initialize weights
         self._initializeWeights(randomWeights)
@@ -76,8 +71,10 @@ class CustomConvNet(nn.Module):
     def forward(self, x):
         
         x = self.convForward(x)
+        x = self.avgPool(x)
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
+
         return x
 
     def convForward(self, x):
