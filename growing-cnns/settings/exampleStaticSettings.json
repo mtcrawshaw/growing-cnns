@@ -8,6 +8,10 @@
 
     "growthSteps": 3,
     "growthMode": "linear",
+    "stoppingCriteria": {
+	    "type": "fixedEpochs",
+	    "numEpochs": 3
+    },
 
     "epochs": 3,
     "batchSize": 64,

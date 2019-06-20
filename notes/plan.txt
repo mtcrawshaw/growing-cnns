@@ -1,8 +1,5 @@
 Cards:
-Training settings:
-- Stopping criteria
-- Hyperparameters
-- Batch size?
+Figure out training settings and deploy
 
 Future stuff:
 Rename growing schemes

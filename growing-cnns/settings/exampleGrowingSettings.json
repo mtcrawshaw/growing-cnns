@@ -9,6 +9,10 @@
     "growthSteps": 3,
     "epochsPerStep": 1,
     "growthMode": "linear",
+    "stoppingCriteria": {
+	    "type": "fixedEpochs",
+	    "numEpochs": 1
+    },
 
     "batchSize": [128, 64, 64],
     "initialLearningRate": 0.01,

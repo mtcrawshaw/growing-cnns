@@ -9,6 +9,10 @@
     "growthSteps": 3,
     "epochsPerStep": 1,
     "growthMode": "linear",
+    "stoppingCriteria": {
+	    "type": "lossConvergence",
+	    "testWindow": 2
+    },
 
     "batchSize": [512, 512, 512],
     "initialLearningRate": 0.01,
@@ -17,6 +21,6 @@
     "batchNorm": true,
 
     "lrDecayEpochStep": 1,
-    "lrDecayEpochRatio": 0.1,
+    "lrDecayEpochRatio": 1.0,
     "lrDecayGrowthRatio": 1.0
 }

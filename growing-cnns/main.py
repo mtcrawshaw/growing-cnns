@@ -162,9 +162,24 @@ def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
     trainResults = []
     validateResults = []
 
+    # Create stopping criteria
+    stoppingSettings = settings['stoppingCriteria']
+    stoppingType = stoppingSettings['type']
+    assert stoppingType in ['fixedEpochs', 'lossConvergence']
+    stoppingCriteria = None
+    if stoppingType == 'fixedEpochs':
+        numEpochs = stoppingSettings['numEpochs']
+        stoppingCriteria = "epoch >= numEpochs"
+    elif stoppingType == 'lossConvergence':
+        testWindow = stoppingSettings['testWindow']
+        stoppingCriteria = "lastMinimum >= testWindow"
+
     # Training loop
     bestAcc1 = 0
-    for epoch in range(settings['epochs']):
+    epoch = 0
+    lastMinimum = 0
+
+    while not eval(stoppingCriteria):
         if epoch > 0 and epoch % settings['lrDecayStep'] == 0:
             utils.adjustLearningRate(optimizer, settings['lrDecayRatio'])
 
@@ -177,6 +192,10 @@ def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
         # Remember best acc@1 and save checkpoint
         isBest = acc1 > bestAcc1
         bestAcc1 = max(acc1, bestAcc1)
+        lastMinimum = 0 if isBest else lastMinimum + 1
+        if isBest:
+            print('   New best test accuracy reached!')
+
         if not args.quiet:
             utils.saveCheckpoint(experimentDir, args.name, {
                 'epoch': epoch + 1,
@@ -185,6 +204,8 @@ def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
                 'bestAcc1': bestAcc1,
                 'optimizer': optimizer.state_dict(),
             }, isBest)
+
+        epoch += 1
 
     results['trainResults'] = list(trainResults)
     results['validateResults'] = list(validateResults)
@@ -243,6 +264,18 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
     trainResults = []
     validateResults = []
 
+    # Create stopping criteria
+    stoppingSettings = settings['stoppingCriteria']
+    stoppingType = stoppingSettings['type']
+    assert stoppingType in ['fixedEpochs', 'lossConvergence']
+    stoppingCriteria = None
+    if stoppingType == 'fixedEpochs':
+        numEpochs = stoppingSettings['numEpochs']
+        stoppingCriteria = "epoch >= numEpochs"
+    elif stoppingType == 'lossConvergence':
+        testWindow = stoppingSettings['testWindow']
+        stoppingCriteria = "lastMinimum >= testWindow"
+
     # Outer training loop
     bestAcc1 = 0
     for i in range(growthController.growthSteps):
@@ -284,7 +317,9 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
         )
 
         # Inner training loop
-        for epoch in range(settings['epochsPerStep']):
+        epoch = 0
+        lastMinimum = 0
+        while not eval(stoppingCriteria):
             if epoch > 0 and epoch % settings['lrDecayEpochStep'] == 0:
                 utils.adjustLearningRate(optimizer,
                         settings['lrDecayEpochRatio'])
@@ -298,6 +333,10 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
             # remember best acc@1 and save checkpoint
             isBest = acc1 > bestAcc1
             bestAcc1 = max(acc1, bestAcc1)
+            lastMinimum = 0 if isBest else lastMinimum + 1
+            if isBest:
+                print('   New best test accuracy reached!')
+
             if not args.quiet:
                 utils.saveCheckpoint(experimentDir, args.name, {
                     'growthStep': i,
@@ -307,6 +346,7 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
                     'optimizer' : optimizer.state_dict(),
                 }, isBest)
 
+            epoch += 1
             totalEpoch += 1
 
     results['trainResults'] = list(trainResults)
