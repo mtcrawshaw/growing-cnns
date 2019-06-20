@@ -15,6 +15,8 @@ Fix argument structure for training/evaluation
 Convert to package
 Add option for CPU only
 Clean/break up main
+Clean/break up testGrowthController.py
+Add test names to ./runTests output
 
 Features:
 3 point growth methods (options: vanilla, freeze old layers for a time, different learning rates for old and new layers, and sliding weighted average for methods 2, 3)
