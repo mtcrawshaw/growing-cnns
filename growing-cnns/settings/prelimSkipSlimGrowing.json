@@ -1,0 +1,25 @@
+{
+    "growing": true,
+
+    "initialChannels": 64,
+    "numSections": 4,
+    "initialNumNodes": 3,
+
+    "growthSteps": 5,
+    "growthMode": "skipSlim",
+    "stoppingCriteria": {
+	    "type": "lossConvergence",
+	    "testWindow": 10,
+	    "maxEpochs": 100
+    },
+
+    "batchSize": [64, 64, 64, 64, 64],
+    "initialLearningRate": 0.01,
+    "lrDecayEpochStep": 50,
+    "lrDecayEpochRatio": 0.5,
+    "lrDecayGrowthRatio": 1.0,
+    "momentum": 0.9,
+    "weightDecay": 1e-4,
+    "batchNorm": true
+}
+
