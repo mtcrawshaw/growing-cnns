@@ -5,15 +5,15 @@
     "numSections": 4,
     "initialNumNodes": 3,
 
-    "growthSteps": 5,
+    "growthSteps": 4,
     "growthMode": "skipSlim",
     "stoppingCriteria": {
 	    "type": "lossConvergence",
 	    "testWindow": 10,
-	    "maxEpochs": 100
+	    "maxEpochs": 125
     },
 
-    "batchSize": [64, 64, 64, 64, 64],
+    "batchSize": [256, 256, 256, 256],
     "initialLearningRate": 0.01,
     "lrDecayEpochStep": 50,
     "lrDecayEpochRatio": 0.5,
