@@ -16,7 +16,8 @@ class GrowthController():
 
     def __init__(self, initialChannels=64, numSections=4, initialNumNodes=3,
             growthSteps=3, numClasses=1000, batchNorm=True,
-            classifierHiddenSize=2048, growthMode='linear'):
+            classifierHiddenSize=2048, growthMode='linear',
+            randomWeights=False):
         
         self.numClasses = numClasses
         self.batchNorm = batchNorm
@@ -28,6 +29,7 @@ class GrowthController():
         self.numNodes = initialNumNodes
         self.classifierHiddenSize = classifierHiddenSize
         self.growthMode = growthMode
+        self.randomWeights = randomWeights
 
         # The ith element of growthHistory is the growth step during which the
         # ith node of the current model's computation graph was inserted.
@@ -72,7 +74,7 @@ class GrowthController():
                 numClasses=self.numClasses,
                 batchNorm=self.batchNorm, 
                 classifierHiddenSize=self.classifierHiddenSize,
-                randomWeights=False
+                randomWeights=self.randomWeights
         )
 
         # Transfer weights from old model to new model

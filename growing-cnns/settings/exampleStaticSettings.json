@@ -3,13 +3,16 @@
 
     "initialChannels": 64,
     "numSections": 4,
-    "numNodes": 3,
+    "initialNumNodes": 3,
     "classifierHiddenSize": 1024,
+
+    "growthSteps": 3,
+    "growthMode": "linear",
 
     "epochs": 3,
     "batchSize": 64,
     "initialLearningRate": 0.01,
-    "lrDecayStep": 1,
+    "lrDecayStep": 5,
     "lrDecayRatio": 0.1,
     "momentum": 0.9,
     "weightDecay": 1e-4,

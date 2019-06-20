@@ -119,16 +119,23 @@ def main(args):
 
 def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
 
-    # Create model
-    compGraph = getInitialCompGraph(settings['numNodes'])
-    model = CustomConvNet(
-            compGraph=compGraph,
-            initialChannels=settings['initialChannels'],
-            numSections=settings['numSections'],
-            numClasses=numClasses,
-            batchNorm=settings['batchNorm'],
-            classifierHiddenSize=settings['classifierHiddenSize']
+    # Create model. Here we grow a model to full size without any training
+    # until the model is full-grown.
+    growthController = GrowthController(
+            settings['initialChannels'],
+            settings['numSections'],
+            settings['initialNumNodes'],
+            settings['growthSteps'],
+            numClasses,
+            settings['batchNorm'],
+            settings['classifierHiddenSize'],
+            settings['growthMode'],
+            randomWeights=True
     )
+    model = None
+    for growthStep in range(settings['growthSteps']):
+        oldModel = None if growthStep == 0 else model
+        model = growthController.step(oldModel=model)
     model = model.cuda(args.gpu)
 
     # Create optimizer
