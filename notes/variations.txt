@@ -1,19 +1,16 @@
 This is a list of all of the variations of the proposed method.
 
-- Growth speed (number of layers grows linearly or exponentially)
 - Position of convolutional layer which doubles number of channels (before max pool or after
   max pool)
-- Position of newly inserted layers for linear growth speed (beginning of section, any point
-  in between, or end, whether to have them spaced out or clumped together)
-- Growth method (Vanilla, vanilla slim, skip, skip slim*, branching, branching slim)
-- Transition methods (Vanilla, freeze old layers, different learning rates, weighted average, 
-	learned weighted average)
+- Growth mode (linear, expandEdge, expandNode)
+- Growth speed (expand all possibilities, expand only those from last growth step)
+- Initialization of new layers (dirac, random weights)
+- Join weighting (uniform weighting, sliding weighting, learned weighting)
+- Join mode (weighted average, probabilistic sample, weighted sum)
+- Whether or not to use different learning rates for different age layers
 - Growth blocks (convolutional layer, resnet basic, resnet bottleneck, densenet, inception)
-- Stopping for each growth step (fixed number of epochs, early stopping, convergence)
+- Stopping criteria (fixed number of epochs, early stopping, convergence)
 - Whether or not to copy batch norm parameters from previous layer
-
-* Slim means only expand edges with at least one vertex that was inserted during the previous
-  step.
 
 Training techniques:
 - All the normal ones (batch norm, dropout, optimizer + optimizer params, etc)
