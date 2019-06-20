@@ -171,7 +171,8 @@ def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
         stoppingCriteria = "epoch >= numEpochs"
     elif stoppingType == 'lossConvergence':
         testWindow = stoppingSettings['testWindow']
-        stoppingCriteria = "lastMinimum >= testWindow"
+        maxEpochs = stoppingSettings['maxEpochs']
+        stoppingCriteria = "lastMinimum >= testWindow or epoch >= maxEpochs"
 
     # Training loop
     bestAcc1 = 0
@@ -272,7 +273,8 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
         stoppingCriteria = "epoch >= numEpochs"
     elif stoppingType == 'lossConvergence':
         testWindow = stoppingSettings['testWindow']
-        stoppingCriteria = "lastMinimum >= testWindow"
+        maxEpochs = stoppingSettings['maxEpochs']
+        stoppingCriteria = "lastMinimum >= testWindow or epoch >= maxEpochs"
 
     # Outer training loop
     bestAcc1 = 0
@@ -293,7 +295,7 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
             num_workers=args.workers, pin_memory=True)
 
         # Create model and optimizer
-        print("=> creating growth iteration %d for model" % i)
+        print("\n=> creating growth iteration %d for model" % i)
         if i == 0:
             model = growthController.step()
         else:

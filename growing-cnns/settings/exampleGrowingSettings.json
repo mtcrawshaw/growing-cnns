@@ -6,7 +6,6 @@
     "initialNumNodes": 3,
 
     "growthSteps": 3,
-    "epochsPerStep": 1,
     "growthMode": "linear",
     "stoppingCriteria": {
 	    "type": "fixedEpochs",

@@ -10,7 +10,8 @@
     "growthMode": "linear",
     "stoppingCriteria": {
 	    "type": "lossConvergence",
-	    "testWindow": 2
+	    "testWindow": 2,
+	    "maxEpochs": 3
     },
 
     "batchSize": [512, 512, 512],

@@ -9,7 +9,8 @@
     "growthMode": "linear",
     "stoppingCriteria": {
 	    "type": "lossConvergence",
-	    "testWindow": 2
+	    "testWindow": 2,
+	    "maxEpochs": 5
     },
 
     "epochs": 3,
