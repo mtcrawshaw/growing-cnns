@@ -8,6 +8,7 @@
 
     "growthSteps": 3,
     "epochsPerStep": 1,
+    "growthMode": "linear",
 
     "batchSize": [128, 64, 64],
     "initialLearningRate": 0.01,

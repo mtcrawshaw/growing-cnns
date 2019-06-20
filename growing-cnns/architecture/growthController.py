@@ -16,7 +16,7 @@ class GrowthController():
 
     def __init__(self, initialChannels=64, numSections=4, initialNumNodes=3,
             growthSteps=3, numClasses=1000, batchNorm=True,
-            classifierHiddenSize=2048):
+            classifierHiddenSize=2048, growthMode='linear'):
         
         self.numClasses = numClasses
         self.batchNorm = batchNorm
@@ -27,6 +27,7 @@ class GrowthController():
         self.numSections = numSections
         self.numNodes = initialNumNodes
         self.classifierHiddenSize = classifierHiddenSize
+        self.growthMode = growthMode
 
         # The ith element of growthHistory is the growth step during which the
         # ith node of the current model's computation graph was inserted.
@@ -58,7 +59,11 @@ class GrowthController():
 
         # Create new model
         self.currentStep += 1
-        newCompGraph = growCompGraph(oldModel.compGraph)
+        newCompGraph = growCompGraph(
+                oldModel.compGraph,
+                growthHistory=self.growthHistory,
+                mode=self.growthMode
+        )
         self.numNodes = newCompGraph.numNodes
         newModel = CustomConvNet(
                 compGraph=newCompGraph,

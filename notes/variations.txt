@@ -5,12 +5,15 @@ This is a list of all of the variations of the proposed method.
   max pool)
 - Position of newly inserted layers for linear growth speed (beginning of section, any point
   in between, or end, whether to have them spaced out or clumped together)
-- Growth method (Vanilla, skip, branching 1, branching 2)
+- Growth method (Vanilla, vanilla slim, skip, skip slim*, branching, branching slim)
 - Transition methods (Vanilla, freeze old layers, different learning rates, weighted average, 
 	learned weighted average)
 - Growth blocks (convolutional layer, resnet basic, resnet bottleneck, densenet, inception)
 - Stopping for each growth step (fixed number of epochs, early stopping, convergence)
 - Whether or not to copy batch norm parameters from previous layer
+
+* Slim means only expand edges with at least one vertex that was inserted during the previous
+  step.
 
 Training techniques:
 - All the normal ones (batch norm, dropout, optimizer + optimizer params, etc)

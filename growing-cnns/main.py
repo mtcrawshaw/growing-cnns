@@ -194,7 +194,9 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
             settings['growthSteps'],
             numClasses,
             settings['batchNorm'],
-            settings['classifierHiddenSize'])
+            settings['classifierHiddenSize'],
+            settings['growthMode']
+    )
     totalEpoch = 0
 
     # Only evaluate model, no training
