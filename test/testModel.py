@@ -32,7 +32,6 @@ class TestModel(unittest.TestCase):
         args['numSections'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['classifierHiddenSize'] = 128
         args['randomWeights'] = False
         model = CustomConvNet(**args)
         model = model.cuda(0)
@@ -78,7 +77,6 @@ class TestModel(unittest.TestCase):
         args['numSections'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['classifierHiddenSize'] = 128
         args['randomWeights'] = False
         model = CustomConvNet(**args)
         model = model.cuda(0)
@@ -137,7 +135,6 @@ class TestModel(unittest.TestCase):
         args['numSections'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['classifierHiddenSize'] = 128
         args['randomWeights'] = False
         model = CustomConvNet(**args)
         model = model.cuda(0)

@@ -84,7 +84,6 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['classifierHiddenSize'] = 128
         args['growthMode'] = 'linear'
 
         self.compareGrowthWeights(args)
@@ -98,7 +97,6 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['classifierHiddenSize'] = 128
         args['growthMode'] = 'skip'
 
         self.compareGrowthWeights(args)
@@ -112,7 +110,6 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['classifierHiddenSize'] = 128
         args['growthMode'] = 'skipSlim'
 
         self.compareGrowthWeights(args)
@@ -126,7 +123,6 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['classifierHiddenSize'] = 128
         args['growthMode'] = 'branching'
 
         self.compareGrowthWeights(args)
@@ -165,7 +161,6 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['classifierHiddenSize'] = 128
         args['growthMode'] = 'linear'
 
         self.compareGrowthFunction(args)
@@ -180,7 +175,6 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['classifierHiddenSize'] = 128
         args['growthMode'] = 'skip'
 
         self.compareGrowthFunction(args)
@@ -195,7 +189,6 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['classifierHiddenSize'] = 128
         args['growthMode'] = 'skipSlim'
 
         self.compareGrowthFunction(args)
@@ -210,7 +203,6 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['classifierHiddenSize'] = 128
         args['growthMode'] = 'branching'
 
         self.compareGrowthFunction(args)
@@ -251,7 +243,6 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['classifierHiddenSize'] = 128
         args['growthMode'] = 'linear'
         expectedEdges = [
                 [(0, 1), (1, 2)],
@@ -271,7 +262,6 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['classifierHiddenSize'] = 128
         args['growthMode'] = 'skip'
         expectedEdges = [
                 [(0, 1), (1, 2)],
@@ -293,7 +283,6 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['classifierHiddenSize'] = 128
         args['growthMode'] = 'skipSlim'
         expectedEdges = [
                 [(0, 1), (1, 2)],
@@ -314,7 +303,6 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['classifierHiddenSize'] = 128
         args['growthMode'] = 'branching'
         expectedEdges = [
                 [(0, 1), (1, 2)],
@@ -364,7 +352,6 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['classifierHiddenSize'] = 128
         args['growthMode'] = 'linear'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
@@ -384,7 +371,6 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['classifierHiddenSize'] = 128
         args['growthMode'] = 'skip'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
@@ -405,7 +391,6 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['classifierHiddenSize'] = 128
         args['growthMode'] = 'skipSlim'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
@@ -425,7 +410,6 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['classifierHiddenSize'] = 128
         args['growthMode'] = 'branching'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},

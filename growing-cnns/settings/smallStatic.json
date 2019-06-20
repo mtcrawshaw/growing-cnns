@@ -4,7 +4,6 @@
     "initialChannels": 8,
     "numSections": 2,
     "initialNumNodes": 2,
-    "classifierHiddenSize": 128,
 
     "growthSteps": 3,
     "growthMode": "linear",

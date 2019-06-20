@@ -128,7 +128,6 @@ def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
             settings['growthSteps'],
             numClasses,
             settings['batchNorm'],
-            settings['classifierHiddenSize'],
             settings['growthMode'],
             randomWeights=True
     )
@@ -222,7 +221,6 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
             settings['growthSteps'],
             numClasses,
             settings['batchNorm'],
-            settings['classifierHiddenSize'],
             settings['growthMode']
     )
     totalEpoch = 0

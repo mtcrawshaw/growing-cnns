@@ -4,7 +4,6 @@
     "initialChannels": 64,
     "numSections": 4,
     "initialNumNodes": 3,
-    "classifierHiddenSize": 1024,
 
     "growthSteps": 3,
     "epochsPerStep": 1,

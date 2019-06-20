@@ -17,8 +17,7 @@ IMAGE_HEIGHT = 32
 class CustomConvNet(nn.Module):
 
     def __init__(self, compGraph, initialChannels=64, numSections=4,
-            numClasses=1000, randomWeights=True, batchNorm=True,
-            classifierHiddenSize=2048):
+            numClasses=1000, randomWeights=True, batchNorm=True):
 
         super(CustomConvNet, self).__init__()
 

@@ -16,8 +16,7 @@ class GrowthController():
 
     def __init__(self, initialChannels=64, numSections=4, initialNumNodes=3,
             growthSteps=3, numClasses=1000, batchNorm=True,
-            classifierHiddenSize=2048, growthMode='linear',
-            randomWeights=False):
+            growthMode='linear', randomWeights=False):
         
         self.numClasses = numClasses
         self.batchNorm = batchNorm
@@ -27,7 +26,6 @@ class GrowthController():
         self.initialChannels = initialChannels
         self.numSections = numSections
         self.numNodes = initialNumNodes
-        self.classifierHiddenSize = classifierHiddenSize
         self.growthMode = growthMode
         self.randomWeights = randomWeights
 
@@ -52,8 +50,7 @@ class GrowthController():
                     initialChannels=self.initialChannels,
                     numSections=self.numSections,
                     numClasses=self.numClasses,
-                    batchNorm=self.batchNorm,
-                    classifierHiddenSize=self.classifierHiddenSize
+                    batchNorm=self.batchNorm
             ) 
             for i in compGraph.nodes:
                 self.growthHistory[i] = 0
@@ -73,7 +70,6 @@ class GrowthController():
                 numSections=self.numSections,
                 numClasses=self.numClasses,
                 batchNorm=self.batchNorm, 
-                classifierHiddenSize=self.classifierHiddenSize,
                 randomWeights=self.randomWeights
         )
 
