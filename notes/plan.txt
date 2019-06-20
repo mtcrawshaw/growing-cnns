@@ -1,5 +1,4 @@
 Cards:
-Get static to use CustomConvNet + full-grown architectures
 Training settings:
 - Stopping criteria
 - Hyperparameters
