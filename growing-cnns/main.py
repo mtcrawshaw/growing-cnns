@@ -199,7 +199,6 @@ def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
         if not args.quiet:
             utils.saveCheckpoint(experimentDir, args.name, {
                 'epoch': epoch + 1,
-                'arch': settings['arch'],
                 'stateDict': model.state_dict(),
                 'bestAcc1': bestAcc1,
                 'optimizer': optimizer.state_dict(),
