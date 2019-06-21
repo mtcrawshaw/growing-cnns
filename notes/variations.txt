@@ -1,12 +1,13 @@
 This is a list of all of the variations of the proposed method.
 
 - Position of convolutional layer which doubles number of channels (before max pool or after
-  max pool)
+    max pool)
 - Growth mode (linear, expandEdge, expandNode)
-- Growth speed (expand all possibilities, expand only those from last growth step)
-- Initialization of new layers (dirac, random weights)
-- Join weighting (uniform weighting, sliding weighting, learned weighting)
-- Join mode (weighted average, probabilistic sample, weighted sum)
+- Growth speed (expand all possibilities, expand only those from last N growth steps)
+- Initialization of new layers (dirac, random)
+- Join weighting (uniform weighting, sliding weighting, learned free weighting,
+    learned softmax weighting)
+- Join mode (weighted average, probabilistic sample)
 - Whether or not to use different learning rates for different age layers
 - Growth blocks (convolutional layer, resnet basic, resnet bottleneck, densenet, inception)
 - Stopping criteria (fixed number of epochs, early stopping, convergence)
