@@ -5,6 +5,8 @@ PyTorch implementation of a training scheme for convolutional neural networks ca
 This project requires Python 3.x and the following Python libraries:
 
 - [numpy](http://www.numpy.org/)
+- [pandas](https://pandas.pydata.org/)
+- [matplotlib](https://matplotlib.org/)
 - [PyTorch](https://www.pytorch.org/) 
 
 ## Usage
