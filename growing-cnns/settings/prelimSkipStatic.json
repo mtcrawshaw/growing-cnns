@@ -9,14 +9,14 @@
     "growthMode": "skip",
     "stoppingCriteria": {
 	    "type": "lossConvergence",
-	    "testWindow": 20,
+	    "testWindow": 25,
 	    "maxEpochs": 500
     },
 
-    "batchSize": 64,
+    "batchSize": 192,
     "initialLearningRate": 0.01,
     "lrDecayStep": 50,
-    "lrDecayRatio": 0.1,
+    "lrDecayRatio": 0.5,
     "momentum": 0.9,
     "weightDecay": 1e-4,
     "batchNorm": true
