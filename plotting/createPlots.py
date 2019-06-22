@@ -8,6 +8,7 @@ import pprint
 import argparse
 
 import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import matplotlib.style as style
 import matplotlib.font_manager as fm
@@ -15,6 +16,8 @@ import matplotlib.transforms as transforms
 
 import pandas as pd
 import numpy as np
+
+from plotSettings import *
 
 #DATA PREPROCESSING
 
@@ -124,10 +127,10 @@ def create_subplot(ax, xaxis, yaxis, df, ylabel, column_total, color_index, NUM_
 
 def main(args):
 
-    # Get log
+    # Create filenames
     projectRoot = os.path.abspath(os.path.join('..', 
         os.path.dirname(__file__)))
-    experimentDir = os.path.join(projectRoot, 'experiments',
+    experimentDir = os.path.join(projectRoot, 'growing-cnns', 'experiments',
             args.experimentName)
     logFilename = os.path.join(experimentDir, '%s.log' % args.experimentName)
     settingsFilename = os.path.join(experimentDir, '%s_settings.json' %
@@ -135,163 +138,26 @@ def main(args):
 
     # Read in log
     rows = []
-    with open(logFilename, encoding='utf-8') as json_file:
-        json_data = json.load(json_file)
+    with open(logFilename, encoding='utf-8') as logFile:
 
-        train_list = []
-        train_keys = []
-        trainlog_list = json_data['trainResults']
-        eval_list = []
-        eval_keys = []
-        evallog_list = json_data['validateResults']
+        logData = json.load(logFile)
+        trainResults = logData['trainResults']
+        validateResults = logData['validateResults']
 
-        # Construct train array.
-        for i, stepdict in enumerate(trainlog_list):
-            row = []
-            for key, val in stepdict.items():
-                if i == 0:
-                    train_keys.append(key)
-                if isint(val):
-                    row.append(int(val))
-                elif isfloat(val):
-                    row.append(float(val))
-                else:
-                    row.append(val)
-            train_list.append(row)
-
-        print(train_keys)
-
-        # Construct eval array.
-        for i, stepdict in enumerate(evallog_list):
-            row = []
-            for key, val in stepdict.items():
-                if i == 0:
-                    eval_keys.append(key)
-                if isint(val):
-                    row.append(int(val))
-                elif isfloat(val):
-                    row.append(float(val))
-                else:
-                    row.append(val)
-
-            eval_list.append(row)
-
-        train = pd.DataFrame(train_list)
-        evalu = pd.DataFrame(eval_list)
-        train.columns = train_keys
-        evalu.columns = eval_keys
-        train['index'] = train.index
-        evalu['index'] = evalu.index
-        train['index'] = train['index'].apply(lambda x: x*10)
-        evalu['index'] = evalu['index'].apply(lambda x: x*10)
-
-    dfs = []
-
-    print(train_keys)
-
-    # Handle column labels.
-    ylabels = ['epoch', 'iteration', 'time', 'loss', 'top1/top5', 'growthStep']
-    column_counts = [1,1,1,1,2,1]
-
-    ylabels = []
-    for i,count in enumerate(column_counts):
-        if count == 1:
-            ylabels.append(train_keys[i])
-        else:
-            y_label = ""
-            for j in range(count):
-                print(ylabel)
-                print(ylabel + train_keys[i + j])
-                y_label = ylabel + train_keys[i + j] + "/"
-            ylabels.append(ylabel[:-2])
-    print(ylabels)
-
-    loss = train[['loss', 'index']]
-    time = train[['time', 'index']]
-    tops = train[['top1', 'top5', 'index']]
-    growthStep = train[['growthStep', 'index']]
-    iteration = train[['iteration', 'index']]
-    epoch = train[['epoch', 'index']]
-    dfs.append(epoch)
-    dfs.append(iteration)
-    dfs.append(time)
-    dfs.append(loss)
-    dfs.append(tops)
-    dfs.append(growthStep)
-
+    metricValues = {
+        'train': {
+            'loss': [result['loss'] for result in trainResults],
+            'accuracy': [results['top1'] for result in trainResults]
+        }
+        'validate': {
+            'loss': [result['loss'] for result in validateResults],
+            'accuracy': [results['top1'] for result in validateResults]
+        }
+    }
 
     # PLOTTING
 
-    #================================================
-    # PARAMETERS
-    #================================================
-
-    # size of ENTIRE PLOT
-    plot_height = 20 # 7.25
-    plot_width = 20
-    num_empty_ticks = 0
-    num_xtick_labels = len(row_labels) + num_empty_ticks
-    #assert num_xtick_labels > len(row_labels)
-
-    # dataframe
-    df = scores
-
-    # x-axis
-    xaxis = 'index'
-
-    # y-axis
-    yaxis = None
-
-    # text
-    title_text =  filename
-    subtitle_text = "train"
-    xlabel = ""
-    ylabel = "Loss"
-    banner_text = "©craw"
-
-    # edges of plot in figure (padding)
-    top = 0.90
-    bottom = 0.1 #0.18 -- old
-    left = 0.08 # 0.1 -- old
-    right = 0.96
-
-    # change title_pad to adjust xpos of title in pixels
-    # + is left, - is right
-    title_pad_x = 0
-
-    # Title sizes
-    title_pos_y = 0.95
-    subtitle_pos_y = 0.92
-    title_fontsize = 50
-    subtitle_fontsize = 30
-
-    # opacity
-    text_opacity = 0.75
-    xaxis_opacity = 0.7
-
-    # sizing
-    tick_label_size = 14
-    legend_size = 14
-    y_axis_label_size = 14
-    x_axis_label_size = 24
-    banner_text_size = 14
-
-    # import font
-    prop = fm.FontProperties(fname='DecimaMonoPro.ttf')
-    prop2 = fm.FontProperties(fname='apercu_medium_pro.otf')
-    prop3 = fm.FontProperties(fname='Apercu.ttf')
-    prop4 = fm.FontProperties(fname='Apercu.ttf', size=legend_size)
-
-    #ticks_font = matplotlib.font_manager.FontProperties(family='DecimaMonoPro', style='normal', size=12, weight='normal', stretch='normal')
-
-    #================================================
-    # END OF PARAMETERS
-    #================================================
-
-
-
-
-    # =========================================================
+    # START HERE TOMORROW
 
     # figure initialization
     fig, axlist = plt.subplots(figsize=(plot_width, plot_height),nrows=len(dfs))
