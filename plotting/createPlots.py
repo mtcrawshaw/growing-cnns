@@ -22,11 +22,8 @@ import plotSettings
 from plotSettings import *
 import preprocessing
 
-
-def graph(dfs, ylabels, filename, column_counts, phase):
+def graph(dfs, ylabels, experimentName, filename, column_counts, phase):
     
-    filename_no_extension = filename.split('.')[0]
-
     # figure initialization
     fig, axlist = plt.subplots(figsize=(plot_width, plot_height),nrows=len(dfs))
     color_index = 0
@@ -110,7 +107,7 @@ def graph(dfs, ylabels, filename, column_counts, phase):
     # title
     graph.text(x = display_left - title_shift_x, y = title_pos_y, 
                transform = yfig_trans,
-               s = filename,
+               s = experimentName,
                fontproperties = prop,
                weight = 'bold', 
                fontsize = title_fontsize,
@@ -132,20 +129,25 @@ def graph(dfs, ylabels, filename, column_counts, phase):
     plt.subplots_adjust(right=right)
 
     # save to .svg
-    plt.savefig(filename_no_extension + "_" + phase + ".svg", dpi=300)
+    plt.savefig(experimentName + "_" + phase + ".svg", dpi=300)
    
 def main(args):
  
-    filename_no_extension = args.filename.split('.')[0]
-    dfs, ylabels, column_counts = preprocessing.read_log(args.filename, args.phase)
-    graph(dfs, ylabels, args.filename, column_counts, args.phase)
-    print("Graph saved to:", filename_no_extension + "_" + args.phase + ".svg") 
+    projectRoot = os.path.abspath(os.path.join('..', os.path.dirname(__file__)))
+    logFilename = os.path.join(projectRoot, 'growing-cnns', 'experiments', 
+            args.experimentName, '%s.log' % args.experimentName)
+    dfs, ylabels, column_counts = preprocessing.read_log(logFilename, args.phase)
+    graph(dfs, ylabels, args.experimentName, logFilename, column_counts,
+            args.phase)
+    print("Graph saved to:", args.experimentName + "_" + args.phase + ".svg") 
 
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description='Growing CNNs with PyTorch')
-    parser.add_argument('filename', type=str, help='Json log file to parse and graph.')
-    parser.add_argument('phase', type=str, help='The section to graph. One of \'train\', \'validate\', \'test\'.') 
+    parser.add_argument('experimentName', type=str, help='Name of experiment \
+            whose results to plot.')
+    parser.add_argument('phase', type=str, help='The section to graph. One of \
+            \'train\', \'validate\', \'test\'.') 
     args = parser.parse_args()
     main(args)
 
