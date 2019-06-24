@@ -1,6 +1,4 @@
 Current sprint:
-Clean plotting stuff
-- Combine train/validate subplots into one plot
 Add plotting for comparing two experiment results
 Check out Colab
 
