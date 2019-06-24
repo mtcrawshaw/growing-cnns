@@ -2,10 +2,10 @@ import math
 
 # This is in case no parent packages are imported, such as in the test cases
 try:
-    from .model import CustomConvNet
+    from .customConvNet import CustomConvNet
     from .graphOperations import getInitialCompGraph, growCompGraph
 except:
-    from model import CustomConvNet
+    from customConvNet import CustomConvNet
     from graphOperations import getInitialCompGraph, growCompGraph
 
 """

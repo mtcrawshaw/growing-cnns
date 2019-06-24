@@ -21,11 +21,11 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.models as models
 
-import growingCNNs.utils as utils
-from growingCNNs.model import CustomConvNet
+from growingCNNs.customConvNet import CustomConvNet
 from growingCNNs.growthController import GrowthController
-from growingCNNs.computationGraph import ComputationGraph
 from growingCNNs.graphOperations import getInitialCompGraph, growCompGraph
+from growingCNNs.utils.computationGraph import ComputationGraph
+import growingCNNs.utils.utils as utils
 
 # Import small dataset
 #sys.path.append('/data')

@@ -1,8 +1,8 @@
 # This is in case no parent packages are imported, such as in the test cases
 try:
-    from .computationGraph import ComputationGraph
+    from .utils.computationGraph import ComputationGraph
 except:
-    from computationGraph import ComputationGraph
+    from utils.computationGraph import ComputationGraph
 
 
 """

@@ -7,9 +7,9 @@ import torch.nn.functional as F
 
 # This is in case no parent packages are imported, such as in the test cases
 try:
-    from .listModule import ListModule
+    from .utils.listModule import ListModule
 except:
-    from listModule import ListModule
+    from utils.listModule import ListModule
 
 IMAGE_WIDTH = 32
 IMAGE_HEIGHT = 32
