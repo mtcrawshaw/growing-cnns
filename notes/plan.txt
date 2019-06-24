@@ -1,5 +1,4 @@
 Current sprint:
-Move main.py and experiment results to root of project
 Clean plotting stuff
 - Get plots to save in experiment directories
 - Remove unwanted subplots from plot

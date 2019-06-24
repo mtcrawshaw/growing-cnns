@@ -1,3 +1,5 @@
+import os
+
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.font_manager as fm
@@ -42,6 +44,7 @@ x_axis_label_size = 24
 banner_text_size = 14
 
 # Import font. 
-prop = fm.FontProperties(fname='DecimaMonoPro.ttf')
+fontPath = os.path.join(os.path.dirname(__file__), 'DecimaMonoPro.ttf')
+prop = fm.FontProperties(fname=fontPath)
 
 #ticks_font = matplotlib.font_manager.FontProperties(family='DecimaMonoPro', style='normal', size=12, weight='normal', stretch='normal')

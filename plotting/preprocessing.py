@@ -18,7 +18,6 @@ def read_log(filename, phase):
     
     rows = []
     filename_no_extension = filename.split('.')[0]
-    print("Reading from file:", filename)
 
     def isfloat(x):
         try:
@@ -112,7 +111,6 @@ def read_log(filename, phase):
                 key_list.append(keys[i + j])
             ylabels.append("".join(words[:-1]))
             dfs.append(log_df[key_list])
-    print("Generating", len(dfs), "subplots.")
     
     return dfs, ylabels, column_counts
 

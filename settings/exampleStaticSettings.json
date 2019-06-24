@@ -12,7 +12,6 @@
 	    "numEpochs": 3
     },
 
-    "epochs": 3,
     "batchSize": 64,
     "initialLearningRate": 0.01,
     "lrDecayStep": 5,

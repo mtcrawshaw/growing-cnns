@@ -18,9 +18,10 @@ import matplotlib.transforms as transforms
 import pandas as pd
 import numpy as np
 
-import plotSettings
-from plotSettings import *
-import preprocessing
+from .plotSettings import *
+from .preprocessing import create_subplot, read_log
+
+projectRoot = os.path.dirname(os.path.dirname(__file__))
 
 def graph(dfs, ylabels, experimentName, filename, column_counts, phase):
     
@@ -35,7 +36,7 @@ def graph(dfs, ylabels, experimentName, filename, column_counts, phase):
         plt.sca(ax)
         style.use('fivethirtyeight')
         column_total += column_counts[i]
-        graph, color_index = preprocessing.create_subplot(
+        graph, color_index = create_subplot(
                 ax=ax, 
                 xaxis=xaxis, 
                 yaxis=yaxis, 
@@ -44,7 +45,7 @@ def graph(dfs, ylabels, experimentName, filename, column_counts, phase):
                 column_total=column_total, 
                 color_index=color_index, 
                 NUM_COLORS=NUM_COLORS,
-                xlabel=plotSettings.xlabel,
+                xlabel=xlabel,
                 y_axis_label_size=y_axis_label_size,
                 x_axis_label_size=x_axis_label_size,
                 legend_size=legend_size, 
@@ -55,9 +56,9 @@ def graph(dfs, ylabels, experimentName, filename, column_counts, phase):
                 xaxis_opacity=xaxis_opacity,
         )
 
-    xlabel = "Iterations"
+    newXLabel = "Iterations"
     # add axis labels  
-    plt.xlabel(xlabel, 
+    plt.xlabel(newXLabel, 
                fontproperties=prop, 
                fontsize = 24, 
                alpha=text_opacity)
@@ -129,17 +130,17 @@ def graph(dfs, ylabels, experimentName, filename, column_counts, phase):
     plt.subplots_adjust(right=right)
 
     # save to .svg
-    plt.savefig(experimentName + "_" + phase + ".svg", dpi=300)
+    plotFile = os.path.join(projectRoot, 'experiments', experimentName,
+            '%s_%s.svg' % (experimentName, phase))
+    plt.savefig(plotFile, dpi=300)
    
-def main(args):
+def main(**args):
  
-    projectRoot = os.path.abspath(os.path.join('..', os.path.dirname(__file__)))
-    logFilename = os.path.join(projectRoot, 'growing-cnns', 'experiments', 
-            args.experimentName, '%s.log' % args.experimentName)
-    dfs, ylabels, column_counts = preprocessing.read_log(logFilename, args.phase)
-    graph(dfs, ylabels, args.experimentName, logFilename, column_counts,
-            args.phase)
-    print("Graph saved to:", args.experimentName + "_" + args.phase + ".svg") 
+    logFilename = os.path.join(projectRoot, 'experiments',
+            args['experimentName'], '%s.log' % args['experimentName'])
+    dfs, ylabels, column_counts = read_log(logFilename, args['phase'])
+    graph(dfs, ylabels, args['experimentName'], logFilename, column_counts,
+            args['phase'])
 
 if __name__ == '__main__':
     
@@ -149,5 +150,7 @@ if __name__ == '__main__':
     parser.add_argument('phase', type=str, help='The section to graph. One of \
             \'train\', \'validate\', \'test\'.') 
     args = parser.parse_args()
-    main(args)
+
+    args = vars(args)
+    main(**args)
 

@@ -7,6 +7,8 @@ import sys
 import json
 import shutil
 import importlib
+import warnings
+warnings.filterwarnings("ignore")
 
 import torch
 import torch.nn as nn
@@ -26,6 +28,7 @@ from growingCNNs.growthController import GrowthController
 from growingCNNs.graphOperations import getInitialCompGraph, growCompGraph
 from growingCNNs.utils.computationGraph import ComputationGraph
 import growingCNNs.utils.utils as utils
+import plotting.createPlots as createPlots
 
 # Import small dataset
 #sys.path.append('/data')
@@ -117,6 +120,9 @@ def main(args):
         logPath = os.path.join(experimentDir, '%s.log' % args.name)
         with open(logPath, 'w') as logFile:
             json.dump(results, logFile, indent=4)
+
+        createPlots.main(experimentName=args.name, phase='train')
+        createPlots.main(experimentName=args.name, phase='validate')
 
 def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
 
