@@ -1,3 +1,13 @@
+Current sprint:
+Move main.py and experiment results to root of project
+Clean plotting stuff
+- Get plots to save in experiment directories
+- Remove unwanted subplots from plot
+- Add plotting option to main.py
+- ?
+Add plotting for comparing two experiment results
+Check out Colab
+
 Functionality cards:
 expandNode, rename expandEdge (include numConvAdded parameter)
 Different growth speeds (expand all, expand youngest, expand oldest)

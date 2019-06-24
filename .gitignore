@@ -1,4 +1,4 @@
-growing-cnns/experiments/*
+experiments/*
 __pycache__/
 data/cifar-10-batches-py
 data/cifar-small

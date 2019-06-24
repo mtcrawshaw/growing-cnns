@@ -21,16 +21,17 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.models as models
 
-import utils
-from architecture.model import CustomConvNet
-from architecture.growthController import GrowthController
-from architecture.computationGraph import ComputationGraph
-from architecture.graphOperations import getInitialCompGraph, growCompGraph
+import growingCNNs.utils as utils
+from growingCNNs.model import CustomConvNet
+from growingCNNs.growthController import GrowthController
+from growingCNNs.computationGraph import ComputationGraph
+from growingCNNs.graphOperations import getInitialCompGraph, growCompGraph
 
 # Import small dataset
-sys.path.append('../data')
-cifarSmall = importlib.import_module('cifarSmall')
-CIFARSmall = cifarSmall.CIFARSmall
+#sys.path.append('/data')
+#cifarSmall = importlib.import_module('cifarSmall')
+#CIFARSmall = cifarSmall.CIFARSmall
+from data.cifarSmall import CIFARSmall
 
 experimentDir = None
 
@@ -97,11 +98,11 @@ def main(args):
 
     # Load dataset
     if not args.small:
-        trainDataset = datasets.CIFAR10(root='../data', train=True, download=True, transform=transformTrain)
-        valDataset = datasets.CIFAR10(root='../data', train=False, download=True, transform=transformVal)
+        trainDataset = datasets.CIFAR10(root='data', train=True, download=True, transform=transformTrain)
+        valDataset = datasets.CIFAR10(root='data', train=False, download=True, transform=transformVal)
     else:
-        trainDataset = CIFARSmall(root='../data', train=True, transform=transformTrain)
-        valDataset = CIFARSmall(root='../data', train=False, transform=transformVal)
+        trainDataset = CIFARSmall(root='data', train=True, transform=transformTrain)
+        valDataset = CIFARSmall(root='data', train=False, transform=transformVal)
 
     # Run training/evaluation
     if experimentType == "growing":

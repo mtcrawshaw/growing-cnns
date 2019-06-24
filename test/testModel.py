@@ -7,7 +7,7 @@ import numpy as np
 
 from testUtils import getTestInput
 
-sys.path.append('../growing-cnns/architecture')
+sys.path.append('../growingCNNs/')
 model = importlib.import_module('model')
 computationGraph = importlib.import_module('computationGraph')
 CustomConvNet = model.CustomConvNet
