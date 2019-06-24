@@ -13,7 +13,7 @@ import matplotlib.transforms as transforms
 
 def read_log(filename, phase):
 
-    phases = ['train', 'validate', 'test']
+    phases = ['train', 'validate']
     assert phase in phases
     
     rows = []
@@ -43,11 +43,13 @@ def read_log(filename, phase):
 
         row_list = []
         log_list = json_data[phase_key]
+        keys_to_plot = ['loss', 'top1']
 
         # Construct train array. 
         for i, stepdict in enumerate(log_list):
             row = []
-            for key, val in stepdict.items():
+            for key in keys_to_plot:
+                val = stepdict[key]
                 if isint(val):
                     row.append(int(val))
                 elif isfloat(val):
@@ -56,7 +58,7 @@ def read_log(filename, phase):
                     row.append(val)
             row_list.append(row) 
 
-        log_df = pd.DataFrame(log_list)
+        log_df = pd.DataFrame(row_list)
         keys = list(log_df.columns)
         log_df['index'] = log_df.index
         log_df['index'] = log_df['index'].apply(lambda x: x*10)

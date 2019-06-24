@@ -1,9 +1,6 @@
 Current sprint:
 Clean plotting stuff
-- Get plots to save in experiment directories
-- Remove unwanted subplots from plot
-- Add plotting option to main.py
-- ?
+- Combine train/validate subplots into one plot
 Add plotting for comparing two experiment results
 Check out Colab
 
@@ -26,5 +23,4 @@ Add option for CPU only
 Clean/break up main
 Clean/break up testGrowthController.py
 Add test names to ./runTests output
-Create plots from logs
 Automatically create cifar-small if it doesn't exist
