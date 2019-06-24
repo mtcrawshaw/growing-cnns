@@ -121,8 +121,7 @@ def main(args):
         with open(logPath, 'w') as logFile:
             json.dump(results, logFile, indent=4)
 
-        createPlots.main(experimentName=args.name, phase='train')
-        createPlots.main(experimentName=args.name, phase='validate')
+        createPlots.main(experimentName=args.name)
 
 def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
 

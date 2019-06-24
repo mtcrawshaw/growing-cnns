@@ -18,33 +18,34 @@ import matplotlib.transforms as transforms
 import pandas as pd
 import numpy as np
 
-from .plotSettings import *
-from .preprocessing import create_subplot, read_log
+# To handle running this script as main, or just import this script
+try:
+    from .plotSettings import *
+    from .preprocessing import create_subplot, read_log
+except:
+    from plotSettings import *
+    from preprocessing import create_subplot, read_log
 
-projectRoot = os.path.dirname(os.path.dirname(__file__))
+projectRoot = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
-def graph(dfs, ylabels, experimentName, filename, column_counts, phase):
+def graph(dfs, yLabels, experimentName, filename):
     
     # figure initialization
     fig, axlist = plt.subplots(figsize=(plot_width, plot_height),nrows=len(dfs))
     color_index = 0
-    column_total = 0
-    NUM_COLORS = sum(column_counts)
 
     for i, df in enumerate(dfs):
         ax = axlist[i]
         plt.sca(ax)
         style.use('fivethirtyeight')
-        column_total += column_counts[i]
         graph, color_index = create_subplot(
                 ax=ax, 
                 xaxis=xaxis, 
                 yaxis=yaxis, 
                 df=df, 
-                ylabel=ylabels[i], 
-                column_total=column_total, 
+                ylabel=yLabels[i], 
                 color_index=color_index, 
-                NUM_COLORS=NUM_COLORS,
+                num_colors=len(dfs),
                 xlabel=xlabel,
                 y_axis_label_size=y_axis_label_size,
                 x_axis_label_size=x_axis_label_size,
@@ -82,7 +83,7 @@ def graph(dfs, ylabels, experimentName, filename, column_counts, phase):
     pad = 2 # points
     bb = ax.get_window_extent()
     h = bb.height/fig.dpi
-    h = h * len(column_counts)
+    h = h * len(dfs)
     height = ((banner.get_size()+2*pad)/72.)/h
     # height = 0.01
 
@@ -117,7 +118,7 @@ def graph(dfs, ylabels, experimentName, filename, column_counts, phase):
     # subtitle, +1 accounts for font size difference in title and subtitle
     graph.text(x = display_left - title_shift_x + 1, y = subtitle_pos_y, 
                transform = yfig_trans,
-               s = phase,
+               s = '',
                fontproperties=prop,
                fontsize = subtitle_fontsize, 
                alpha = text_opacity)
@@ -131,24 +132,21 @@ def graph(dfs, ylabels, experimentName, filename, column_counts, phase):
 
     # save to .svg
     plotFile = os.path.join(projectRoot, 'experiments', experimentName,
-            '%s_%s.svg' % (experimentName, phase))
+            '%s.svg' % experimentName)
     plt.savefig(plotFile, dpi=300)
    
 def main(**args):
  
     logFilename = os.path.join(projectRoot, 'experiments',
             args['experimentName'], '%s.log' % args['experimentName'])
-    dfs, ylabels, column_counts = read_log(logFilename, args['phase'])
-    graph(dfs, ylabels, args['experimentName'], logFilename, column_counts,
-            args['phase'])
+    dfs, yLabels = read_log(logFilename)
+    graph(dfs, yLabels, args['experimentName'], logFilename)
 
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description='Growing CNNs with PyTorch')
     parser.add_argument('experimentName', type=str, help='Name of experiment \
             whose results to plot.')
-    parser.add_argument('phase', type=str, help='The section to graph. One of \
-            \'train\', \'validate\', \'test\'.') 
     args = parser.parse_args()
 
     args = vars(args)

@@ -11,110 +11,49 @@ import matplotlib.transforms as transforms
 
 #DATA PREPROCESSING
 
-def read_log(filename, phase):
+def read_log(filename):
 
-    phases = ['train', 'validate']
-    assert phase in phases
-    
-    rows = []
-    filename_no_extension = filename.split('.')[0]
+    # Read and parse log into data frame
+    with open(filename, encoding='utf-8') as resultsFile:
+        results = json.load(resultsFile)
 
-    def isfloat(x):
-        try:
-            a = float(x)
-        except ValueError:
-            return False
-        else:
-            return True
+    splits = ['train', 'validate']
+    performanceMetrics = ['loss', 'top1']
 
-    def isint(x):
-        try:
-            a = float(x)
-            b = int(a)
-        except ValueError:
-            return False
-        else:
-            return a == b
+    numIterations = min(len(results['trainResults']),
+            len(results['validateResults']))
 
-    with open(filename, encoding='utf-8') as json_file:
-        json_data = json.load(json_file)
-        
-        phase_key = phase + "Results"
+    # This is kind of hacky, but it's the quickest way to access
+    # the print frequency of training without passing it here
+    printFrequency = results['trainResults'][1]['iteration']
 
-        row_list = []
-        log_list = json_data[phase_key]
-        keys_to_plot = ['loss', 'top1']
+    metricList = []
+    for i in range(numIterations):
+        row = []
 
-        # Construct train array. 
-        for i, stepdict in enumerate(log_list):
-            row = []
-            for key in keys_to_plot:
-                val = stepdict[key]
-                if isint(val):
-                    row.append(int(val))
-                elif isfloat(val):
-                    row.append(float(val))
-                else:
-                    row.append(val)
-            row_list.append(row) 
+        iteration = i * printFrequency
+        row.append(iteration)
+        for split in splits:
+            splitKey = '%sResults' % split
 
-        log_df = pd.DataFrame(row_list)
-        keys = list(log_df.columns)
-        log_df['index'] = log_df.index
-        log_df['index'] = log_df['index'].apply(lambda x: x*10)
-       
+            for metric in performanceMetrics:
+                row.append(results[splitKey][i][metric])
+
+        metricList.append(list(row))
+
+    metricValues = pd.DataFrame(metricList)
+    yLabels = []
+    for split in splits:
+        for metric in performanceMetrics:
+            yLabels.append('%s_%s' % (split, metric))
+    metricValues.columns = ['index'] + yLabels
+
+    # Create data frames for each subplot
     dfs = []
+    for metric in yLabels:
+        dfs.append(metricValues[[metric, 'index']])
 
-    # This column_counts generation process assumes 
-    # `top5` always follows `top1` in keys. 
-    column_counts = []
-    i = 0
-    for i in range(len(keys)):
-        key = keys[i]
-        if key == 'top1':
-            column_counts.append(2)
-        elif key != 'top5':
-            column_counts.append(1)
-        i += 1
-
-    """
-    # Handle distribution of columns in subplots.
-    if phase == 'train': 
-        column_counts = [1,1,1,1,2,1]
-        try: 
-            assert sum(column_counts) == len(keys)
-        except AssertionError:
-            column_counts = [1,1,1,1,2]
-            assert sum(column_counts) == len(keys) 
-    else:
-        column_counts = [1,1,2,1]
-    try: 
-        assert sum(column_counts) == len(keys)
-    except AssertionError:
-        column_counts = [1,1,2]
-        assert sum(column_counts) == len(keys) 
-    """
-
-    # Iterate over column split, and create a seperate DataFrame for 
-    # each subplot. Add the subplot names to `ylabels`. 
-    ylabel = ""
-    ylabels = []
-    for i,count in enumerate(column_counts):
-        key_list = ['index']
-        if count == 1:
-            ylabels.append(keys[i])
-            key_list.append(keys[i])
-            dfs.append(log_df[key_list])
-        else:
-            words = []
-            for j in range(count):
-                words.append(keys[i + j])
-                words.append("/")
-                key_list.append(keys[i + j])
-            ylabels.append("".join(words[:-1]))
-            dfs.append(log_df[key_list])
-    
-    return dfs, ylabels, column_counts
+    return dfs, yLabels
 
 def create_subplot(**kwargs):
 
@@ -123,9 +62,8 @@ def create_subplot(**kwargs):
     yaxis = kwargs['yaxis'] 
     df = kwargs['df'] 
     ylabel = kwargs['ylabel'] 
-    column_total = kwargs['column_total'] 
     color_index = kwargs['color_index'] 
-    NUM_COLORS = kwargs['NUM_COLORS']
+    num_colors = kwargs['num_colors']
     xlabel = kwargs['xlabel']
     y_axis_label_size = kwargs['y_axis_label_size']
     x_axis_label_size = kwargs['x_axis_label_size']
@@ -145,35 +83,16 @@ def create_subplot(**kwargs):
     # john
     plt.legend(loc='best')
 
-    # hacks
-    # ax.set_ylim(top=0.93, bottom=0.4)
-    # ax.set_xlim(left=-0.1, right=10.5)
-
-    MARKERS=['.',',','o','v','s','p','P','H','+','x','X','D','d','|','_','<','>','^','8','*','h','1','2','3','4']
-    
     # distinct line colors/styles for many lines
     #LINE_STYLES = ['solid', 'dashed', 'dashdot', 'dotted']
     LINE_STYLES = ['solid']
     NUM_STYLES = len(LINE_STYLES)
     
-    use_markers = False
-    if use_markers:
-        NUM_MARKERS = len(MARKERS)
-        assert len(MARKERS) >= column_count
     cm = plt.get_cmap('magma') #'gist_rainbow'
     
-    j = 0
-    while color_index < column_total:
-        plt.gca().get_lines()[j].set_color(cm(color_index//NUM_STYLES*float(NUM_STYLES)/NUM_COLORS))
-        
-        if use_markers:
-            plt.gca().get_lines()[j].set_marker(MARKERS[j])
-            # plt.gca().get_lines()[j].set_linestyle(LINE_STYLES[i%NUM_STYLES])
-            plt.gca().get_lines()[j].set_markersize(7.0)
-            
-        plt.gca().get_lines()[j].set_linewidth(3.0)
-        color_index += 1
-        j += 1
+    plt.gca().get_lines()[0].set_color(cm(color_index//NUM_STYLES*float(NUM_STYLES)/num_colors))
+    plt.gca().get_lines()[0].set_linewidth(3.0)
+    color_index += 1
 
     # add axis labels
     plt.xlabel(xlabel, 
