@@ -13,7 +13,7 @@ This project requires Python 3.x and the following Python libraries:
 
 To train a Growing CNN on the CIFAR-10 dataset, from the root of the project run:
 ```bash
-python3 growing-cnns/main.py example growing-cnns/settings/exampleGrowingSettings.json
+python3 main.py example settings/exampleGrowingSettings.json
 ```
 
 ## Contact
