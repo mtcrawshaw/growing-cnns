@@ -37,7 +37,11 @@ def main(**args):
         # Build up list of dfs across experiments
         for metric, df in currentDfs.items():
             if metric in dfs.keys():
-                dfs[metric] = dfs[metric].join(df.set_index('index'))
+                dfs[metric] = dfs[metric].merge(
+                    df.set_index('index'),
+                    left_on='index',
+                    right_on='index'
+                )
             else:
                 dfs[metric] = df
 

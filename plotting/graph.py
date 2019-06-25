@@ -11,10 +11,8 @@ import pandas as pd
 
 # To handle running this script as main, or just import this script
 try:
-    from .preprocessing import create_subplot
     from .plotSettings import *
 except:
-    from preprocessing import create_subplot
     from plotSettings import *
 
 def graph(dfs, title, filename):
@@ -22,7 +20,8 @@ def graph(dfs, title, filename):
     # figure initialization
     fig, axlist = plt.subplots(figsize=(plot_width, plot_height),nrows=len(dfs))
     color_index = 0
-
+    num_colors = sum([len(df.columns) - 1 for df in dfs.values()])
+    
     for i, (metric, df) in enumerate(dfs.items()):
         ax = axlist[i]
         plt.sca(ax)
@@ -34,7 +33,7 @@ def graph(dfs, title, filename):
                 df=df, 
                 ylabel=metric, 
                 color_index=color_index, 
-                num_colors=len(dfs),
+                num_colors=num_colors,
                 xlabel=xlabel,
                 y_axis_label_size=y_axis_label_size,
                 x_axis_label_size=x_axis_label_size,
@@ -121,3 +120,83 @@ def graph(dfs, title, filename):
 
     plt.savefig(filename, dpi=300)
 
+
+def create_subplot(**kwargs):
+
+    ax = kwargs['ax'] 
+    xaxis = kwargs['xaxis'] 
+    yaxis = kwargs['yaxis'] 
+    df = kwargs['df'] 
+    ylabel = kwargs['ylabel'] 
+    color_index = kwargs['color_index'] 
+    num_colors = kwargs['num_colors']
+    xlabel = kwargs['xlabel']
+    y_axis_label_size = kwargs['y_axis_label_size']
+    x_axis_label_size = kwargs['x_axis_label_size']
+    legend_size = kwargs['legend_size'] 
+    tick_label_size = kwargs['tick_label_size']
+    axis_font = kwargs['axis_font']
+    legend_font = kwargs['legend_font']
+    text_opacity = kwargs['text_opacity']
+    xaxis_opacity = kwargs['xaxis_opacity']
+    
+    #===PLOT===
+    graph = df.plot(x=xaxis, 
+                    y=yaxis,
+                    ax=ax, 
+                    use_index=True)
+                    #legend=True)
+    # john
+    plt.legend(loc='best')
+
+    # distinct line colors/styles for many lines
+    #LINE_STYLES = ['solid', 'dashed', 'dashdot', 'dotted']
+    LINE_STYLES = ['solid']
+    NUM_STYLES = len(LINE_STYLES)
+    
+    cm = plt.get_cmap('prism')
+    
+    for j in range(len(df.columns) - 1):
+        plt.gca().get_lines()[j].set_color(cm(color_index/num_colors))
+        plt.gca().get_lines()[j].set_linewidth(3.0)
+        color_index += 1
+
+    # add axis labels
+    plt.xlabel(xlabel, 
+               fontproperties=axis_font, 
+               fontsize = y_axis_label_size, 
+               alpha=text_opacity)
+    plt.ylabel(ylabel, 
+               fontproperties=axis_font, 
+               fontsize = y_axis_label_size, 
+               alpha=text_opacity)
+
+    # change font of legend
+    L = graph.legend(prop={'size': legend_size})
+    plt.setp(L.texts, fontproperties=legend_font, alpha=text_opacity)
+
+    # set size of tick labels
+    graph.tick_params(axis = 'both', 
+                      which = 'major', 
+                      labelsize = tick_label_size)
+
+    # set fontname for tick labels
+    for tick in graph.get_xticklabels():
+        tick.set_fontname("DecimaMonoPro")
+    for tick in graph.get_yticklabels():
+        tick.set_fontname("DecimaMonoPro")
+
+    # set color for tick labels
+    [t.set_color('#303030') for t in ax.xaxis.get_ticklabels()]
+    [t.set_color('#303030') for t in ax.yaxis.get_ticklabels()]
+
+    # create bolded x-axis
+    graph.axhline(y = 0, # 0
+                  color = 'black', 
+                  linewidth = 1.3, 
+                  alpha = xaxis_opacity)
+
+    # Set color of subplots. 
+    ax.set_facecolor('#F0F0F0')
+     
+    return graph, color_index
