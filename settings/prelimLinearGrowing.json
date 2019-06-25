@@ -10,7 +10,7 @@
     "stoppingCriteria": {
 	    "type": "lossConvergence",
 	    "testWindow": 3,
-	    "numEpochs": 12
+	    "maxEpochs": 12
     },
 
     "batchSize": [256, 256, 256, 256],
