@@ -451,13 +451,14 @@ def validate(valLoader, model, criterion, epoch, args, validateResults, growthSt
                        i, len(valLoader), batchTime=batchTime, loss=losses,
                        top1=top1, top5=top5))
 
+                currentResult = {'epoch': epoch, 'loss': losses.val,
+                        'top1': top1.val.item(), 'top5': top5.val.item()}
+                if growthStep is not None:
+                    currentResult['growthStep'] = growthStep
+                validateResults.append(dict(currentResult))
+
         print(' * Acc@1 {top1.avg:.3f} Acc@5 {top5.avg:.3f}'
               .format(top1=top1, top5=top5))
-        currentResult = {'epoch': epoch, 'loss': losses.avg,
-                                 'top1': top1.avg.item(), 'top5': top5.avg.item()} 
-        if growthStep is not None:
-            currentResult['growthStep'] = growthStep
-        validateResults.append(dict(currentResult))
 
     return top1.avg
 
