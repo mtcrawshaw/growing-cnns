@@ -8,14 +8,13 @@
     "growthSteps": 4,
     "growthMode": "skipSlim",
     "stoppingCriteria": {
-	    "type": "lossConvergence",
-	    "testWindow": 10,
-	    "maxEpochs": 125
+	    "type": "fixedEpochs",
+	    "numEpochs": 12
     },
 
     "batchSize": [256, 256, 256, 256],
     "initialLearningRate": 0.01,
-    "lrDecayEpochStep": 50,
+    "lrDecayEpochStep": 5,
     "lrDecayEpochRatio": 0.5,
     "lrDecayGrowthRatio": 1.0,
     "momentum": 0.9,
