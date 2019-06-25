@@ -1,24 +1,25 @@
-Cards:
-Figure out training settings and deploy
+Current sprint:
+Add plotting for comparing two experiment results
+Check out Colab
 
-Future stuff:
-Rename growing schemes
+Functionality cards:
+expandNode, rename expandEdge (include numConvAdded parameter)
+Different growth speeds (expand all, expand youngest, expand oldest)
+Join modes and weighting modes
+Random initialization of new layers under certain weighting modes
+Copy batch norm parameters from previous layer
+Loss convergence (rename current lossConvergence to earlyStopping)
+
+Errand cards:
 Add ImageNet + other datasets
 Parallelize across multiple GPUs
 Add different block types
 Dynamic batch sizes across growth steps using model size estimation (https://github.com/jacobkimmel/pytorch_modelsize)
 Fix argument structure for training/evaluation
-Convert to package
+Convert to package and fix imports
 Add option for CPU only
 Clean/break up main
 Clean/break up testGrowthController.py
 Add test names to ./runTests output
-
-Features:
-3 point growth methods (options: vanilla, freeze old layers for a time, different learning rates for old and new layers, and sliding weighted average for methods 2, 3)
-1 network growth method for point method 1, 3 network growth methods for point method 2, 2 network growth methods for point method 3
-Convolution, Resnet basic, Resnet bottleneck, Densenet, Inception module
-Dropfilter, Dropblock, stochastic depth, drop path for option 3
-Early stopping, fixed number of epochs, training loss convergence
-
-
+Automatically create cifar-small if it doesn't exist
+Log out validation loss for each print interval

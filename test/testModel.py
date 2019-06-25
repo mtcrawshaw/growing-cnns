@@ -7,10 +7,12 @@ import numpy as np
 
 from testUtils import getTestInput
 
-sys.path.append('../growing-cnns/architecture')
-model = importlib.import_module('model')
+sys.path.append('../growingCNNs/')
+customConvNet = importlib.import_module('customConvNet')
+CustomConvNet = customConvNet.CustomConvNet
+
+sys.path.append('../growingCNNs/utils')
 computationGraph = importlib.import_module('computationGraph')
-CustomConvNet = model.CustomConvNet
 ComputationGraph = computationGraph.ComputationGraph
 
 class TestModel(unittest.TestCase):

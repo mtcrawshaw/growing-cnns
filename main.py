@@ -7,6 +7,8 @@ import sys
 import json
 import shutil
 import importlib
+import warnings
+warnings.filterwarnings("ignore")
 
 import torch
 import torch.nn as nn
@@ -21,16 +23,18 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torchvision.models as models
 
-import utils
-from architecture.model import CustomConvNet
-from architecture.growthController import GrowthController
-from architecture.computationGraph import ComputationGraph
-from architecture.graphOperations import getInitialCompGraph, growCompGraph
+from growingCNNs.customConvNet import CustomConvNet
+from growingCNNs.growthController import GrowthController
+from growingCNNs.graphOperations import getInitialCompGraph, growCompGraph
+from growingCNNs.utils.computationGraph import ComputationGraph
+import growingCNNs.utils.utils as utils
+import plotting.plotExperiment as plotExperiment
 
 # Import small dataset
-sys.path.append('../data')
-cifarSmall = importlib.import_module('cifarSmall')
-CIFARSmall = cifarSmall.CIFARSmall
+#sys.path.append('/data')
+#cifarSmall = importlib.import_module('cifarSmall')
+#CIFARSmall = cifarSmall.CIFARSmall
+from data.cifarSmall import CIFARSmall
 
 experimentDir = None
 
@@ -97,11 +101,11 @@ def main(args):
 
     # Load dataset
     if not args.small:
-        trainDataset = datasets.CIFAR10(root='../data', train=True, download=True, transform=transformTrain)
-        valDataset = datasets.CIFAR10(root='../data', train=False, download=True, transform=transformVal)
+        trainDataset = datasets.CIFAR10(root='data', train=True, download=True, transform=transformTrain)
+        valDataset = datasets.CIFAR10(root='data', train=False, download=True, transform=transformVal)
     else:
-        trainDataset = CIFARSmall(root='../data', train=True, transform=transformTrain)
-        valDataset = CIFARSmall(root='../data', train=False, transform=transformVal)
+        trainDataset = CIFARSmall(root='data', train=True, transform=transformTrain)
+        valDataset = CIFARSmall(root='data', train=False, transform=transformVal)
 
     # Run training/evaluation
     if experimentType == "growing":
@@ -116,6 +120,8 @@ def main(args):
         logPath = os.path.join(experimentDir, '%s.log' % args.name)
         with open(logPath, 'w') as logFile:
             json.dump(results, logFile, indent=4)
+
+        plotExperiment.main(experimentName=args.name)
 
 def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
 
@@ -445,13 +451,14 @@ def validate(valLoader, model, criterion, epoch, args, validateResults, growthSt
                        i, len(valLoader), batchTime=batchTime, loss=losses,
                        top1=top1, top5=top5))
 
+                currentResult = {'epoch': epoch, 'loss': losses.val,
+                        'top1': top1.val.item(), 'top5': top5.val.item()}
+                if growthStep is not None:
+                    currentResult['growthStep'] = growthStep
+                validateResults.append(dict(currentResult))
+
         print(' * Acc@1 {top1.avg:.3f} Acc@5 {top5.avg:.3f}'
               .format(top1=top1, top5=top5))
-        currentResult = {'epoch': epoch, 'loss': losses.avg,
-                                 'top1': top1.avg.item(), 'top5': top5.avg.item()} 
-        if growthStep is not None:
-            currentResult['growthStep'] = growthStep
-        validateResults.append(dict(currentResult))
 
     return top1.avg
 

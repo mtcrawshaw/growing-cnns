@@ -5,8 +5,7 @@
     "numSections": 2,
     "initialNumNodes": 2,
 
-    "growthSteps": 3,
-    "epochsPerStep": 1,
+    "growthSteps": 1,
     "growthMode": "linear",
     "stoppingCriteria": {
 	    "type": "lossConvergence",

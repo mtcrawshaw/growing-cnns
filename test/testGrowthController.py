@@ -8,7 +8,7 @@ import numpy as np
 from testUtils import getTestInput
 from toyModel import SimpleNet
 
-sys.path.append('../growing-cnns/architecture')
+sys.path.append('../growingCNNs/')
 growthController = importlib.import_module('growthController')
 GrowthController = growthController.GrowthController
 
