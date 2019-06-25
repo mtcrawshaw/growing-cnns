@@ -8,7 +8,8 @@
     "growthSteps": 4,
     "growthMode": "skipSlim",
     "stoppingCriteria": {
-	    "type": "fixedEpochs",
+	    "type": "lossConvergence",
+	    "testWindow": 3,
 	    "numEpochs": 12
     },
 

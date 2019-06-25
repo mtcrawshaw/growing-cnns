@@ -9,13 +9,13 @@
     "growthMode": "linear",
     "stoppingCriteria": {
 	    "type": "lossConvergence",
-	    "testWindow": 10,
-	    "maxEpochs": 125
+	    "testWindow": 3,
+	    "numEpochs": 12
     },
 
     "batchSize": [256, 256, 256, 256],
     "initialLearningRate": 0.01,
-    "lrDecayEpochStep": 50,
+    "lrDecayEpochStep": 5,
     "lrDecayEpochRatio": 0.5,
     "lrDecayGrowthRatio": 1.0,
     "momentum": 0.9,
