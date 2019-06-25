@@ -22,3 +22,4 @@ Clean/break up main
 Clean/break up testGrowthController.py
 Add test names to ./runTests output
 Automatically create cifar-small if it doesn't exist
+Log out validation loss for each print interval

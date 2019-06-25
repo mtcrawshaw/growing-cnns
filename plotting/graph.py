@@ -1,11 +1,4 @@
-# Imports. 
-
-import io
-import os
-import sys
-import csv
 import math
-import pprint
 import argparse
 
 import matplotlib
@@ -14,27 +7,23 @@ import matplotlib.pyplot as plt
 import matplotlib.style as style
 import matplotlib.font_manager as fm
 import matplotlib.transforms as transforms
-
 import pandas as pd
-import numpy as np
 
 # To handle running this script as main, or just import this script
 try:
+    from .preprocessing import create_subplot
     from .plotSettings import *
-    from .preprocessing import create_subplot, read_log
 except:
+    from preprocessing import create_subplot
     from plotSettings import *
-    from preprocessing import create_subplot, read_log
 
-projectRoot = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-
-def graph(dfs, yLabels, experimentName, filename):
+def graph(dfs, title, filename):
     
     # figure initialization
     fig, axlist = plt.subplots(figsize=(plot_width, plot_height),nrows=len(dfs))
     color_index = 0
 
-    for i, df in enumerate(dfs):
+    for i, (metric, df) in enumerate(dfs.items()):
         ax = axlist[i]
         plt.sca(ax)
         style.use('fivethirtyeight')
@@ -43,7 +32,7 @@ def graph(dfs, yLabels, experimentName, filename):
                 xaxis=xaxis, 
                 yaxis=yaxis, 
                 df=df, 
-                ylabel=yLabels[i], 
+                ylabel=metric, 
                 color_index=color_index, 
                 num_colors=len(dfs),
                 xlabel=xlabel,
@@ -109,7 +98,7 @@ def graph(dfs, yLabels, experimentName, filename):
     # title
     graph.text(x = display_left - title_shift_x, y = title_pos_y, 
                transform = yfig_trans,
-               s = experimentName,
+               s = title,
                fontproperties = prop,
                weight = 'bold', 
                fontsize = title_fontsize,
@@ -130,25 +119,5 @@ def graph(dfs, yLabels, experimentName, filename):
     plt.subplots_adjust(left=left)
     plt.subplots_adjust(right=right)
 
-    # save to .svg
-    plotFile = os.path.join(projectRoot, 'experiments', experimentName,
-            '%s.svg' % experimentName)
-    plt.savefig(plotFile, dpi=300)
-   
-def main(**args):
- 
-    logFilename = os.path.join(projectRoot, 'experiments',
-            args['experimentName'], '%s.log' % args['experimentName'])
-    dfs, yLabels = read_log(logFilename)
-    graph(dfs, yLabels, args['experimentName'], logFilename)
-
-if __name__ == '__main__':
-    
-    parser = argparse.ArgumentParser(description='Growing CNNs with PyTorch')
-    parser.add_argument('experimentName', type=str, help='Name of experiment \
-            whose results to plot.')
-    args = parser.parse_args()
-
-    args = vars(args)
-    main(**args)
+    plt.savefig(filename, dpi=300)
 

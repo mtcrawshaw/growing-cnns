@@ -28,7 +28,7 @@ from growingCNNs.growthController import GrowthController
 from growingCNNs.graphOperations import getInitialCompGraph, growCompGraph
 from growingCNNs.utils.computationGraph import ComputationGraph
 import growingCNNs.utils.utils as utils
-import plotting.createPlots as createPlots
+import plotting.plotExperiment as plotExperiment
 
 # Import small dataset
 #sys.path.append('/data')
@@ -121,7 +121,7 @@ def main(args):
         with open(logPath, 'w') as logFile:
             json.dump(results, logFile, indent=4)
 
-        createPlots.main(experimentName=args.name)
+        plotExperiment.main(experimentName=args.name)
 
 def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
 

@@ -20,40 +20,31 @@ def read_log(filename):
     splits = ['train', 'validate']
     performanceMetrics = ['loss', 'top1']
 
-    numIterations = min(len(results['trainResults']),
-            len(results['validateResults']))
-
     # This is kind of hacky, but it's the quickest way to access
     # the print frequency of training without passing it here
     printFrequency = results['trainResults'][1]['iteration']
 
-    metricList = []
-    for i in range(numIterations):
-        row = []
-
-        iteration = i * printFrequency
-        row.append(iteration)
-        for split in splits:
-            splitKey = '%sResults' % split
-
-            for metric in performanceMetrics:
-                row.append(results[splitKey][i][metric])
-
-        metricList.append(list(row))
-
-    metricValues = pd.DataFrame(metricList)
-    yLabels = []
+    # Build dictionary of dfs for each split/metric pair
+    dfs = {}
     for split in splits:
+        splitKey = '%sResults' % split
+        numIterations = len(results[splitKey])
+
         for metric in performanceMetrics:
-            yLabels.append('%s_%s' % (split, metric))
-    metricValues.columns = ['index'] + yLabels
+            
+            metricList = []
+            yLabel = '%s_%s' % (split, metric)
+            for i in range(numIterations):
+                row = []
+                row.append(results[splitKey][i][metric])
+                row.append(i * printFrequency)
 
-    # Create data frames for each subplot
-    dfs = []
-    for metric in yLabels:
-        dfs.append(metricValues[[metric, 'index']])
+                metricList.append(list(row))
 
-    return dfs, yLabels
+            dfs[yLabel] = pd.DataFrame(metricList)
+            dfs[yLabel].columns = [yLabel, 'index']
+
+    return dfs
 
 def create_subplot(**kwargs):
 
@@ -90,9 +81,10 @@ def create_subplot(**kwargs):
     
     cm = plt.get_cmap('magma') #'gist_rainbow'
     
-    plt.gca().get_lines()[0].set_color(cm(color_index//NUM_STYLES*float(NUM_STYLES)/num_colors))
-    plt.gca().get_lines()[0].set_linewidth(3.0)
-    color_index += 1
+    for j in range(len(df.columns) - 1):
+        plt.gca().get_lines()[j].set_color(cm(color_index//NUM_STYLES*float(NUM_STYLES)/num_colors))
+        plt.gca().get_lines()[j].set_linewidth(3.0)
+        color_index += 1
 
     # add axis labels
     plt.xlabel(xlabel, 
