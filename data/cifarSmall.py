@@ -4,6 +4,8 @@ import os
 import os.path
 import numpy as np
 import sys
+import shutil
+import glob
 
 if sys.version_info[0] == 2:
     import cPickle as pickle
@@ -26,6 +28,7 @@ class CIFARSmall(data.Dataset):
             target and transforms it.
 
     """
+    original_base_folder = 'cifar-10-batches-py'
     base_folder = 'cifar-small'
     train_list = ['data_batch_1']
     test_list = ['test_batch']
@@ -51,6 +54,19 @@ class CIFARSmall(data.Dataset):
 
         self.data = []
         self.targets = []
+
+        # create cifar-small if it doesn't already exist
+        smallDir = os.path.join(self.root, self.base_folder)
+        if not os.path.isdir(smallDir):
+            src = os.path.join(self.root, self.original_base_folder)
+            shutil.copytree(src, smallDir)
+
+            filesToKeep = self.train_list + self.test_list
+            filesToKeep += [self.meta['filename']]
+            dataFiles = glob.glob('%s/*' % smallDir)
+            for dataFile in dataFiles:
+                if os.path.basename(dataFile) not in filesToKeep:
+                    os.remove(dataFile)
 
         # now load the picked numpy arrays
         for file_name in data_list:
