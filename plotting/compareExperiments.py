@@ -38,7 +38,7 @@ def main(**args):
         for metric, df in currentDfs.items():
             if metric in dfs.keys():
                 dfs[metric] = dfs[metric].merge(
-                    df.set_index('index'),
+                    df,
                     left_on='index',
                     right_on='index'
                 )

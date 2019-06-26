@@ -323,6 +323,7 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
 
         # Inner training loop
         epoch = 0
+        bestStepAcc1 = 0 # best accuracy for current growth step
         lastMinimum = 0
         while not eval(stoppingCriteria):
             if epoch > 0 and epoch % settings['lrDecayEpochStep'] == 0:
@@ -337,10 +338,15 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
 
             # remember best acc@1 and save checkpoint
             isBest = acc1 > bestAcc1
+            isBestStep = acc1 > bestStepAcc1
             bestAcc1 = max(acc1, bestAcc1)
-            lastMinimum = 0 if isBest else lastMinimum + 1
+            bestStepAcc1 = max(acc1, bestStepAcc1)
+            lastMinimum = 0 if isBestStep else lastMinimum + 1
             if isBest:
                 print('   New best test accuracy reached!')
+            elif isBestStep:
+                print('   New best test accuracy reached for current growth \
+                        step!')
 
             if not args.quiet:
                 utils.saveCheckpoint(experimentDir, args.name, {

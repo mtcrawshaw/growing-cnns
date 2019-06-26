@@ -1,5 +1,5 @@
 Current sprint:
-Add plotting for comparing two experiment results
+Fix compareExperiments.py (can't handle different length log files)
 Check out Colab
 
 Functionality cards:
