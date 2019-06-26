@@ -9,7 +9,7 @@ try:
     from .graph import graph
 except:
     from plotSettings import *
-    from preprocessing import read_log
+    from preprocessing import read_log, getLogLengths
     from graph import graph
 
 def main(**args):
@@ -18,9 +18,10 @@ def main(**args):
     projectRoot = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     dfs = {}
     for i, experimentName in enumerate(args['experimentNames']):
+        lengths = getLogLengths(args['experimentNames'])
         logFilename = os.path.join(projectRoot, 'experiments',
                 experimentName, '%s.log' % experimentName)
-        currentDfs = read_log(logFilename)
+        currentDfs = read_log(logFilename, lengths=lengths)
 
         # Rename columns in dfs to avoid overlap
         for metric in currentDfs.keys():
