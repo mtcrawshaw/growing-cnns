@@ -1,25 +1,22 @@
 Current sprint:
-Fix compareExperiments.py (can't handle different length log files)
-Check out Colab
+Plan and implement expandNode, expandEdge (include numConvAdded parameter)
+Different growth speeds (expand all, expand youngest, expand oldest)
 
 Functionality cards:
-expandNode, rename expandEdge (include numConvAdded parameter)
-Different growth speeds (expand all, expand youngest, expand oldest)
 Join modes and weighting modes
 Random initialization of new layers under certain weighting modes
 Copy batch norm parameters from previous layer
 Loss convergence (rename current lossConvergence to earlyStopping)
+Growth step transfers weights with best validation performance
 
 Errand cards:
 Add ImageNet + other datasets
-Parallelize across multiple GPUs
 Add different block types
 Dynamic batch sizes across growth steps using model size estimation (https://github.com/jacobkimmel/pytorch_modelsize)
-Fix argument structure for training/evaluation
-Convert to package and fix imports
-Add option for CPU only
 Clean/break up main
 Clean/break up testGrowthController.py
 Add test names to ./runTests output
-Automatically create cifar-small if it doesn't exist
-Log out validation loss for each print interval
+Parallelize across multiple GPUs
+Fix argument structure for training/evaluation
+Convert to package and fix imports
+Add option for CPU only

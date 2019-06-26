@@ -16,7 +16,8 @@ class GrowthController():
 
     def __init__(self, initialChannels=64, numSections=4, initialNumNodes=3,
             growthSteps=3, numClasses=1000, batchNorm=True,
-            growthMode='linear', randomWeights=False):
+            growthMode='expandEdge', numConvToAdd=1, itemsToExpand='youngest',
+            randomWeights=False):
         
         self.numClasses = numClasses
         self.batchNorm = batchNorm
@@ -27,6 +28,8 @@ class GrowthController():
         self.numSections = numSections
         self.numNodes = initialNumNodes
         self.growthMode = growthMode
+        self.numConvToAdd = numConvToAdd
+        self.itemsToExpand = itemsToExpand
         self.randomWeights = randomWeights
 
         # The ith element of growthHistory is the growth step during which the
@@ -61,7 +64,9 @@ class GrowthController():
         newCompGraph = growCompGraph(
                 oldModel.compGraph,
                 growthHistory=self.growthHistory,
-                mode=self.growthMode
+                growthMode=self.growthMode,
+                numConvToAdd=self.numConvToAdd,
+                itemsToExpand=self.itemsToExpand
         )
         self.numNodes = newCompGraph.numNodes
         newModel = CustomConvNet(

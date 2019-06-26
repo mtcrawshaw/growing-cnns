@@ -21,9 +21,22 @@ def getInitialCompGraph(numNodes):
     For a given computation graph, builds and returns a grown version
     using the either linear, skip, skipSlim, or branching growth mode.
 """
-def growCompGraph(compGraph, growthHistory, mode='linear'):
+def growCompGraph(compGraph, growthHistory, growthMode, numConvToAdd,
+        itemsToExpand):
 
-    assert mode in ['linear', 'skip', 'skipSlim', 'branching']
+    assert growthMode in ['expandEdge'] # ['expandEdge', 'expandNode']
+    assert itemsToExpand in ['all', 'oldest', 'youngest']
+
+    growthFn = eval(growthMode)
+    return growthFn(compGraph, growthHistory, numConvToAdd, itemsToExpand)
+
+"""
+    Helper function for growCompGraph which implements the 'expandEdge'
+    growth mode.
+"""
+def expandEdge(compGraph, growthHistory, numConvToAdd, itemsToExpand):
+
+    assert numConvToAdd >= 1
 
     # Find next available node
     nextAvailableNode = 0
@@ -31,54 +44,32 @@ def growCompGraph(compGraph, growthHistory, mode='linear'):
         nextAvailableNode += 1
 
     # Find edges to expand
-    if 'slim' in mode.lower():
+    if itemsToExpand == 'all':
+        edgesToExpand = list(compGraph.edges)
+    elif itemsToExpand == 'oldest':
+        edgesToExpand = [(start, end) for (start, end) in compGraph.edges if
+                growthHistory[start] == 0 or
+                growthHistory[end] == 0]
+    elif itemsToExpand == 'youngest':
         currentStep = max(growthHistory.values())
         edgesToExpand = [(start, end) for (start, end) in compGraph.edges if
                 growthHistory[start] == currentStep or
                 growthHistory[end] == currentStep]
-    else:
-        edgesToExpand = list(compGraph.edges)
 
-    # Expand nodes
+    # Expand edges
     newEdges = []
     for start, end in compGraph.edges:
+        newEdges.append((start, end))
 
-        if mode == 'linear':
+        if (start, end) in edgesToExpand:
 
-            # Linear
-            if (start, end) in edgesToExpand:
-                newNode = nextAvailableNode
-                newEdges.append((start, newNode))
-                newEdges.append((newNode, end))
+            prevNode = start
+            for i in range(numConvToAdd):
+                currentNode = nextAvailableNode
+                newEdges.append((prevNode, currentNode))
+                prevNode = currentNode
                 nextAvailableNode += 1
-            else:
-                tempEdges.append((start, end))
-
-        elif 'skip' in mode:
-
-            # Skip/Skip slim
-            newEdges.append((start, end))
-            if (start, end) in edgesToExpand:
-                newNode = nextAvailableNode
-                newEdges.append((start, newNode))
-                newEdges.append((newNode, end))
-                nextAvailableNode += 1
-
-        elif mode == 'branching':
-
-            # Branching
-            newEdges.append((start, end))
-            if (start, end) in edgesToExpand:
-                newNode1 = nextAvailableNode
-                nextAvailableNode += 1
-                newNode2 = nextAvailableNode
-
-                newEdges.append((start, newNode1))
-                newEdges.append((newNode1, newNode2))
-                newEdges.append((newNode2, end))
-
-                nextAvailableNode += 1
-
+            newEdges.append((prevNode, end))
 
     newCompGraph = ComputationGraph(
             newEdges,

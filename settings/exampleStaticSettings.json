@@ -6,7 +6,9 @@
     "initialNumNodes": 3,
 
     "growthSteps": 3,
-    "growthMode": "linear",
+    "growthMode": "expandEdge",
+    "numConvToAdd": 1,
+    "itemsToExpand": "youngest",
     "stoppingCriteria": {
 	    "type": "fixedEpochs",
 	    "numEpochs": 3

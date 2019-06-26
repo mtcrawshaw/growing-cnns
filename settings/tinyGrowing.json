@@ -6,7 +6,9 @@
     "initialNumNodes": 2,
 
     "growthSteps": 1,
-    "growthMode": "linear",
+    "growthMode": "expandEdge",
+    "numConvToAdd": 1,
+    "itemsToExpand": "youngest",
     "stoppingCriteria": {
 	    "type": "lossConvergence",
 	    "testWindow": 2,

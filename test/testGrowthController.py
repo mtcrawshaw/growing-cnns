@@ -75,7 +75,7 @@ class TestGrowthController(unittest.TestCase):
         Tests whether the corresponding layers between a model and the
         resulting model after a growth step have the same weight values.
     """
-    def testGrowthStepWeights_Linear(self):
+    def testGrowthStepWeights_Edge_1_Youngest(self):
 
         args = {}
         args['initialChannels'] = 8
@@ -84,11 +84,13 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['growthMode'] = 'linear'
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'youngest'
 
         self.compareGrowthWeights(args)
 
-    def testGrowthStepWeights_Skip(self):
+    def testGrowthStepWeights_Edge_2_Youngest(self):
 
         args = {}
         args['initialChannels'] = 8
@@ -97,11 +99,13 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['growthMode'] = 'skip'
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'youngest'
 
         self.compareGrowthWeights(args)
 
-    def testGrowthStepWeights_SkipSlim(self):
+    def testGrowthStepWeights_Edge_1_Oldest(self):
 
         args = {}
         args['initialChannels'] = 8
@@ -110,11 +114,13 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['growthMode'] = 'skipSlim'
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'oldest'
 
         self.compareGrowthWeights(args)
 
-    def testGrowthStepWeights_Branching(self):
+    def testGrowthStepWeights_Edge_2_Oldest(self):
 
         args = {}
         args['initialChannels'] = 8
@@ -123,7 +129,39 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['growthMode'] = 'branching'
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'oldest'
+
+        self.compareGrowthWeights(args)
+
+    def testGrowthStepWeights_Edge_1_All(self):
+
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'all'
+
+        self.compareGrowthWeights(args)
+
+    def testGrowthStepWeights_Edge_2_All(self):
+
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'all'
 
         self.compareGrowthWeights(args)
 
@@ -151,7 +189,7 @@ class TestGrowthController(unittest.TestCase):
         Tests whether a model and the resulting model after a growth step
         calculate the same output given the same input.
     """
-    def testGrowthStepFunction_Linear(self):
+    def testGrowthStepFunction_Edge_1_Youngest(self):
 
         # Create growth controller
         args = {}
@@ -161,11 +199,13 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['growthMode'] = 'linear'
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'youngest'
 
         self.compareGrowthFunction(args)
 
-    def testGrowthStepFunction_Skip(self):
+    def testGrowthStepFunction_Edge_2_Youngest(self):
 
         # Create growth controller
         args = {}
@@ -175,11 +215,13 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['growthMode'] = 'skip'
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'youngest'
 
         self.compareGrowthFunction(args)
 
-    def testGrowthStepFunction_SkipSlim(self):
+    def testGrowthStepFunction_Edge_1_Oldest(self):
 
         # Create growth controller
         args = {}
@@ -189,11 +231,13 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['growthMode'] = 'skipSlim'
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'oldest'
 
         self.compareGrowthFunction(args)
 
-    def testGrowthStepFunction_Branching(self):
+    def testGrowthStepFunction_Edge_2_Oldest(self):
 
         # Create growth controller
         args = {}
@@ -203,7 +247,41 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['growthMode'] = 'branching'
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'oldest'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Edge_1_All(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'all'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Edge_2_All(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'all'
 
         self.compareGrowthFunction(args)
 
@@ -233,7 +311,7 @@ class TestGrowthController(unittest.TestCase):
         Tests whether the growth controller expands the edges in a computation
         graph correctly.
     """
-    def testGrowthStepEdges_Linear(self):
+    def testGrowthStepEdges_Edge_1_Youngest(self):
 
         # Create growth controller
         args = {}
@@ -243,16 +321,19 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['growthMode'] = 'linear'
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'youngest'
         expectedEdges = [
                 [(0, 1), (1, 2)],
-                [(0, 3), (3, 1), (1, 4), (4, 2)],
-                [(0, 5), (5, 3), (3, 6), (6, 1), (1, 7), (7, 4), (4, 8), (8, 2)]
+                [(0, 3), (3, 1), (0, 1), (1, 4), (4, 2), (1, 2)],
+                [(0, 5), (5, 3), (0, 3), (3, 6), (6, 1), (3, 1), (0, 1),
+                    (1, 7), (7, 4), (1, 4), (4, 8), (8, 2), (4, 2), (1, 2)],
         ]
 
         self.compareGrowthEdges(args, expectedEdges)
 
-    def testGrowthStepEdges_Skip(self):
+    def testGrowthStepEdges_Edge_2_Youngest(self):
 
         # Create growth controller
         args = {}
@@ -262,7 +343,75 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['growthMode'] = 'skip'
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'youngest'
+        expectedEdges = [
+                [(0, 1), (1, 2)],
+                [(0, 3), (3, 1), (0, 1), (1, 4), (4, 2), (1, 2)],
+                [(0, 5), (5, 3), (0, 3), (3, 6), (6, 1), (3, 1), (0, 1),
+                    (1, 7), (7, 4), (1, 4), (4, 8), (8, 2), (4, 2), (1, 2)],
+        ]
+
+        self.compareGrowthEdges(args, expectedEdges)
+
+    def testGrowthStepEdges_Edge_1_Oldest(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'oldest'
+        expectedEdges = [
+                [(0, 1), (1, 2)],
+                [(0, 3), (3, 1), (0, 1), (1, 4), (4, 2), (1, 2)],
+                [(0, 5), (5, 3), (0, 3), (3, 6), (6, 1), (3, 1), (0, 1),
+                    (1, 7), (7, 4), (1, 4), (4, 8), (8, 2), (4, 2), (1, 2)],
+        ]
+
+        self.compareGrowthEdges(args, expectedEdges)
+
+    def testGrowthStepEdges_Edge_2_Oldest(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'oldest'
+        expectedEdges = [
+                [(0, 1), (1, 2)],
+                [(0, 3), (3, 1), (0, 1), (1, 4), (4, 2), (1, 2)],
+                [(0, 5), (5, 3), (0, 3), (3, 6), (6, 1), (3, 1), (0, 1),
+                    (1, 7), (7, 4), (1, 4), (4, 8), (8, 2), (4, 2), (1, 2)],
+        ]
+
+        self.compareGrowthEdges(args, expectedEdges)
+
+    def testGrowthStepEdges_Edge_1_All(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'all'
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 1), (0, 1), (1, 4), (4, 2), (1, 2)],
@@ -273,7 +422,7 @@ class TestGrowthController(unittest.TestCase):
 
         self.compareGrowthEdges(args, expectedEdges)
 
-    def testGrowthStepEdges_SkipSlim(self):
+    def testGrowthStepEdges_Edge_2_All(self):
 
         # Create growth controller
         args = {}
@@ -283,27 +432,9 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['growthMode'] = 'skipSlim'
-        expectedEdges = [
-                [(0, 1), (1, 2)],
-                [(0, 3), (3, 1), (0, 1), (1, 4), (4, 2), (1, 2)],
-                [(0, 5), (5, 3), (0, 3), (3, 6), (6, 1), (3, 1), (0, 1),
-                    (1, 7), (7, 4), (1, 4), (4, 8), (8, 2), (4, 2), (1, 2)],
-        ]
-
-        self.compareGrowthEdges(args, expectedEdges)
-
-    def testGrowthStepEdges_Branching(self):
-
-        # Create growth controller
-        args = {}
-        args['initialChannels'] = 8
-        args['numSections'] = 3
-        args['initialNumNodes'] = 3
-        args['growthSteps'] = 3
-        args['numClasses'] = 1000
-        args['batchNorm'] = False
-        args['growthMode'] = 'branching'
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'all'
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 1), (0, 3), (3, 4), (4, 1), (1, 2), (1, 5), (5, 6),
@@ -342,7 +473,7 @@ class TestGrowthController(unittest.TestCase):
         Tests whether the growth controller calculates the correct growth
         history.
     """
-    def testGrowthStepHistory_Linear(self):
+    def testGrowthStepHistory_Edge_1_Youngest(self):
 
         # Create growth controller
         args = {}
@@ -352,7 +483,9 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['growthMode'] = 'linear'
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'youngest'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
@@ -361,7 +494,7 @@ class TestGrowthController(unittest.TestCase):
 
         self.compareGrowthHistory(args, expectedHistory)
 
-    def testGrowthStepHistory_Skip(self):
+    def testGrowthStepHistory_Edge_2_Youngest(self):
 
         # Create growth controller
         args = {}
@@ -371,7 +504,72 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['growthMode'] = 'skip'
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'youngest'
+        expectedHistory = [
+                {0: 0, 1: 0, 2: 0},
+                {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
+                {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 2, 6: 2, 7: 2, 8: 2}
+        ]
+
+        self.compareGrowthHistory(args, expectedHistory)
+
+    def testGrowthStepHistory_Edge_1_Oldest(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'oldest'
+        expectedHistory = [
+                {0: 0, 1: 0, 2: 0},
+                {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
+                {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 2, 6: 2, 7: 2, 8: 2}
+        ]
+
+        self.compareGrowthHistory(args, expectedHistory)
+
+    def testGrowthStepHistory_Edge_2_Oldest(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'oldest'
+        expectedHistory = [
+                {0: 0, 1: 0, 2: 0},
+                {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
+                {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 2, 6: 2, 7: 2, 8: 2}
+        ]
+
+        self.compareGrowthHistory(args, expectedHistory)
+
+    def testGrowthStepHistory_Edge_1_All(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'all'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
@@ -381,7 +579,7 @@ class TestGrowthController(unittest.TestCase):
 
         self.compareGrowthHistory(args, expectedHistory)
 
-    def testGrowthStepHistory_SkipSlim(self):
+    def testGrowthStepHistory_Edge_2_All(self):
 
         # Create growth controller
         args = {}
@@ -391,26 +589,9 @@ class TestGrowthController(unittest.TestCase):
         args['growthSteps'] = 3
         args['numClasses'] = 1000
         args['batchNorm'] = False
-        args['growthMode'] = 'skipSlim'
-        expectedHistory = [
-                {0: 0, 1: 0, 2: 0},
-                {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
-                {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 2, 6: 2, 7: 2, 8: 2}
-        ]
-
-        self.compareGrowthHistory(args, expectedHistory)
-
-    def testGrowthStepHistory_Branching(self):
-
-        # Create growth controller
-        args = {}
-        args['initialChannels'] = 8
-        args['numSections'] = 3
-        args['initialNumNodes'] = 3
-        args['growthSteps'] = 3
-        args['numClasses'] = 1000
-        args['batchNorm'] = False
-        args['growthMode'] = 'branching'
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'all'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1},
