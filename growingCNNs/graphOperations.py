@@ -48,7 +48,7 @@ def expandEdge(compGraph, growthHistory, numConvToAdd, itemsToExpand):
         edgesToExpand = list(compGraph.edges)
     elif itemsToExpand == 'oldest':
         edgesToExpand = [(start, end) for (start, end) in compGraph.edges if
-                growthHistory[start] == 0 or
+                growthHistory[start] == 0 and
                 growthHistory[end] == 0]
     elif itemsToExpand == 'youngest':
         currentStep = max(growthHistory.values())

@@ -348,9 +348,12 @@ class TestGrowthController(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         expectedEdges = [
                 [(0, 1), (1, 2)],
-                [(0, 3), (3, 1), (0, 1), (1, 4), (4, 2), (1, 2)],
-                [(0, 5), (5, 3), (0, 3), (3, 6), (6, 1), (3, 1), (0, 1),
-                    (1, 7), (7, 4), (1, 4), (4, 8), (8, 2), (4, 2), (1, 2)],
+                [(0, 3), (3, 4), (4, 1), (0, 1), (1, 5), (5, 6), (6, 2),
+                    (1, 2)],
+                [(0, 7), (7, 8), (8, 3), (0, 3), (3, 9), (9, 10), (10, 4),
+                    (3, 4), (4, 11), (11, 12), (12, 1), (4, 1), (0, 1),
+                    (1, 13), (13, 14), (14, 5), (1, 5), (5, 15), (15, 16),
+                    (16, 6), (5, 6), (6, 17), (17, 18), (18, 2), (6, 2), (1, 2)]
         ]
 
         self.compareGrowthEdges(args, expectedEdges)
@@ -371,8 +374,8 @@ class TestGrowthController(unittest.TestCase):
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 1), (0, 1), (1, 4), (4, 2), (1, 2)],
-                [(0, 5), (5, 3), (0, 3), (3, 6), (6, 1), (3, 1), (0, 1),
-                    (1, 7), (7, 4), (1, 4), (4, 8), (8, 2), (4, 2), (1, 2)],
+                [(0, 3), (3, 1), (0, 5), (5, 1), (0, 1), (1, 4), (4, 2),
+                    (1, 6), (6, 2), (1, 2)]
         ]
 
         self.compareGrowthEdges(args, expectedEdges)
@@ -392,9 +395,10 @@ class TestGrowthController(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         expectedEdges = [
                 [(0, 1), (1, 2)],
-                [(0, 3), (3, 1), (0, 1), (1, 4), (4, 2), (1, 2)],
-                [(0, 5), (5, 3), (0, 3), (3, 6), (6, 1), (3, 1), (0, 1),
-                    (1, 7), (7, 4), (1, 4), (4, 8), (8, 2), (4, 2), (1, 2)],
+                [(0, 3), (3, 4), (4, 1), (0, 1), (1, 5), (5, 6), (6, 2),
+                    (1, 2)],
+                [(0, 3), (3, 4), (4, 1), (0, 7), (7, 8), (8, 1), (0, 1),
+                    (1, 5), (5, 6), (6, 2), (1, 9), (9, 10), (10, 2), (1, 2)]
         ]
 
         self.compareGrowthEdges(args, expectedEdges)
@@ -509,8 +513,10 @@ class TestGrowthController(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
-                {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
-                {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 2, 6: 2, 7: 2, 8: 2}
+                {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1},
+                {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1, 7: 2, 8: 2, 9: 2,
+                    10: 2, 11: 2, 12: 2, 13: 2, 14: 2, 15: 2, 16: 2, 17: 2,
+                    18: 2}
         ]
 
         self.compareGrowthHistory(args, expectedHistory)
@@ -531,7 +537,7 @@ class TestGrowthController(unittest.TestCase):
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
-                {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 2, 6: 2, 7: 2, 8: 2}
+                {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 2, 6: 2}
         ]
 
         self.compareGrowthHistory(args, expectedHistory)
@@ -551,8 +557,9 @@ class TestGrowthController(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
-                {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
-                {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 2, 6: 2, 7: 2, 8: 2}
+                {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1},
+                {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1, 7: 2, 8: 2, 9: 2,
+                    10: 2}
         ]
 
         self.compareGrowthHistory(args, expectedHistory)
