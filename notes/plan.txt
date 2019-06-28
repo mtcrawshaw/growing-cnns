@@ -1,21 +1,25 @@
 Current sprint:
-Plan and implement expandNode, expandEdge (include numConvAdded parameter)
-Different growth speeds (expand all, expand youngest, expand oldest)
+Get training to run in Colab
+Copy batch norm parameters from previous layer
+Join weighting:
+- Learned free weighting
+- Learned softmax weighting
+- Sliding weighting
+Join mode:
+- Weighted average
+- Probabilistic sample
+Setting for randomly initialized new layers
 
 Functionality cards:
-Join modes and weighting modes
-Random initialization of new layers under certain weighting modes
-Copy batch norm parameters from previous layer
 Loss convergence (rename current lossConvergence to earlyStopping)
 Growth step transfers weights with best validation performance
+Different block types
 
 Errand cards:
 Add ImageNet + other datasets
-Add different block types
 Dynamic batch sizes across growth steps using model size estimation (https://github.com/jacobkimmel/pytorch_modelsize)
 Clean/break up main
 Clean/break up testGrowthController.py
-Add test names to ./runTests output
 Parallelize across multiple GPUs
 Fix argument structure for training/evaluation
 Convert to package and fix imports
