@@ -61,7 +61,7 @@ class GrowthController():
 
         # Create new model
         self.currentStep += 1
-        newCompGraph = growCompGraph(
+        newCompGraph, nodesToCopy = growCompGraph(
                 oldModel.compGraph,
                 growthHistory=self.growthHistory,
                 growthMode=self.growthMode,
@@ -98,6 +98,16 @@ class GrowthController():
 
                     # Update growth history
                     self.growthHistory[j] = self.currentStep
+
+            for sourceNode, destNode in nodesToCopy:
+
+                # Grab state dictionary from source layer
+                sourceLayer = oldModel.sections[i][sourceNode]
+                sourceStateDict = sourceLayer.state_dict()
+
+                # Load source state dictionary into destination layer
+                destLayer = newModel.sections[i][destNode]
+                destLayer.load_state_dict(sourceStateDict)
 
 
         # Transfer classifier weights
