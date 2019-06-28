@@ -31,7 +31,7 @@ def getInitialCompGraph(numNodes):
 def growCompGraph(compGraph, growthHistory, growthMode, numConvToAdd,
         itemsToExpand):
 
-    assert growthMode in ['expandEdge'] # ['expandEdge', 'expandNode']
+    assert growthMode in ['expandEdge', 'expandNode']
     assert itemsToExpand in ['all', 'oldest', 'youngest']
 
     growthFn = eval(growthMode)

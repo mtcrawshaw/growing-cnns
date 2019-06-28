@@ -94,6 +94,8 @@ node, 2, youngest
 0 -----------> 1 -----------> 2
  \----> 3 -----.----> 4 -----/ 
   \-> 5 -> 6 -/ \-> 7 -> 8 -/
+Note: In the above diagram, (3, 4) is an edge, (3, 7) is an edge, (6, 4) is an edge, but
+(6, 7) is NOT an edge
 
 
 node, 1, oldest
@@ -144,5 +146,6 @@ node, 2, all
 0 -----------> 1 ------------> 2
  \----> 3 -----.----> 4 ------/ 
   \-> 7 -> 8 -/ \-> 9 -> 10 -/
-
+Note: In the above diagram, (3, 4) is an edge, (3, 9) is an edge, (8, 4) is an edge, but
+(8, 9) is NOT an edge
 
