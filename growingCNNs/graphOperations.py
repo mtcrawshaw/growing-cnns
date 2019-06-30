@@ -22,11 +22,12 @@ def getInitialCompGraph(numNodes):
 
     Returns:
         newCompGraph: a grown version of the input computation graph
-        nodesToCopy: a list of 2-tuples of integers representing the
-            weights that should be copied to preserve the network's
-            function in a growth step. [(x, y), (x, z)] means that
-            the weights from node x should be copied to both node y
-            and node z.
+        nodesToCopy: a list of 3-tuples of integers representing the
+            nodes whose weights should be copied to preserve the
+            network's function in a growth step. [(x, y, 'conv'),
+            (x, z, 'bn')] means that the convolutional weights from
+            node x should be copied to node y and the batch norm
+            parameters from node x should be copied to node z.
 """
 def growCompGraph(compGraph, growthHistory, growthMode, numConvToAdd,
         itemsToExpand):
@@ -65,6 +66,7 @@ def expandEdge(compGraph, growthHistory, numConvToAdd, itemsToExpand):
 
     # Expand edges
     newEdges = []
+    nodesToCopy = []
     for start, end in compGraph.edges:
         newEdges.append((start, end))
 
@@ -74,6 +76,8 @@ def expandEdge(compGraph, growthHistory, numConvToAdd, itemsToExpand):
             for i in range(numConvToAdd):
                 currentNode = nextAvailableNode
                 newEdges.append((prevNode, currentNode))
+                nodesToCopy.append((start, currentNode, 'bn'))
+
                 prevNode = currentNode
                 nextAvailableNode += 1
             newEdges.append((prevNode, end))
@@ -85,7 +89,7 @@ def expandEdge(compGraph, growthHistory, numConvToAdd, itemsToExpand):
     )
 
     # Empty list shows that no weights need to be copied to new nodes
-    return newCompGraph, []
+    return newCompGraph, nodesToCopy
 
 """
     Helper function for growCompGraph which implements the 'expandNode'
@@ -143,12 +147,13 @@ def expandNode(compGraph, growthHistory, numConvToAdd, itemsToExpand):
             # Ensure that weights from expanded node are copied
             # to the first new node in the expansion, to preserve
             # the function computed by the network
-            nodesToCopy.append((node, currentNode))
+            nodesToCopy.append((node, currentNode, 'conv'))
 
             # Connect adjacent new nodes
             for i in range(numConvToAdd - 1):
                 currentNode = nextAvailableNode
                 newEdges.append((prevNode, currentNode))
+                nodesToCopy.append((node, currentNode, 'bn'))
                 prevNode = currentNode
                 nextAvailableNode += 1
 

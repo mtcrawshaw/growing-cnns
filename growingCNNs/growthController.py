@@ -17,7 +17,7 @@ class GrowthController():
     def __init__(self, initialChannels=64, numSections=4, initialNumNodes=3,
             growthSteps=3, numClasses=1000, batchNorm=True,
             growthMode='expandEdge', numConvToAdd=1, itemsToExpand='youngest',
-            randomWeights=False):
+            randomWeights=False, copyBatchNorm=True):
         
         self.numClasses = numClasses
         self.batchNorm = batchNorm
@@ -31,6 +31,7 @@ class GrowthController():
         self.numConvToAdd = numConvToAdd
         self.itemsToExpand = itemsToExpand
         self.randomWeights = randomWeights
+        self.copyBatchNorm = copyBatchNorm
 
         # The ith element of growthHistory is the growth step during which the
         # ith node of the current model's computation graph was inserted.
@@ -82,6 +83,9 @@ class GrowthController():
         oldNodes = oldModel.compGraph.nodes
         newNodes = newModel.compGraph.nodes
         for i in range(self.numSections):
+
+            # Copy weights from old model into nodes from new model with
+            # same index.
             for j in newNodes:
 
                 if j in oldNodes:
@@ -99,15 +103,34 @@ class GrowthController():
                     # Update growth history
                     self.growthHistory[j] = self.currentStep
 
-            for sourceNode, destNode in nodesToCopy:
+            # Copy weights from old model into nodes from new model necessary
+            # to preserve the function calculated by the network
+            for sourceNode, destNode, weightToCopy in nodesToCopy:
 
-                # Grab state dictionary from source layer
-                sourceLayer = oldModel.sections[i][sourceNode]
-                sourceStateDict = sourceLayer.state_dict()
+                assert weightToCopy in ['conv', 'bn']
 
-                # Load source state dictionary into destination layer
-                destLayer = newModel.sections[i][destNode]
-                destLayer.load_state_dict(sourceStateDict)
+                if weightToCopy == 'conv':
+
+                    # Grab state dictionary from source layer
+                    sourceLayer = oldModel.sections[i][sourceNode]
+                    sourceStateDict = sourceLayer.state_dict()
+
+                    # Load source state dictionary into destination layer
+                    destLayer = newModel.sections[i][destNode]
+                    destLayer.load_state_dict(sourceStateDict)
+
+                elif weightToCopy == 'bn':
+
+                    if self.batchNorm and self.copyBatchNorm:
+                        # Grab state dictionary from source layer
+                        bnIndex = 1
+                        sourceLayer = oldModel.sections[i][sourceNode][bnIndex]
+                        sourceStateDict = sourceLayer.state_dict()
+
+                        # Load source state dictionary into destination layer
+                        destLayer = newModel.sections[i][destNode][bnIndex]
+                        destLayer.load_state_dict(sourceStateDict)
+
 
 
         # Transfer classifier weights

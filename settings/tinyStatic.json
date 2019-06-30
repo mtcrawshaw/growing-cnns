@@ -9,6 +9,7 @@
     "growthMode": "linear",
     "numConvToAdd": 1,
     "itemsToExpand": "youngest",
+    "copyBatchNorm": true,
     "stoppingCriteria": {
 	    "type": "lossConvergence",
 	    "testWindow": 2,
