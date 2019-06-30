@@ -10,6 +10,7 @@
     "numConvToAdd": 1,
     "itemsToExpand": "youngest",
     "copyBatchNorm": true,
+    "randomWeights": false,
     "stoppingCriteria": {
 	    "type": "fixedEpochs",
 	    "numEpochs": 3

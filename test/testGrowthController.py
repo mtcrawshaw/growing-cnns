@@ -110,6 +110,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthWeights(args)
 
@@ -126,6 +127,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthWeights(args)
 
@@ -142,6 +144,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthWeights(args)
 
@@ -158,6 +161,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthWeights(args)
 
@@ -174,6 +178,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthWeights(args)
 
@@ -190,6 +195,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthWeights(args)
 
@@ -206,6 +212,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthWeights(args)
 
@@ -222,6 +229,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthWeights(args)
 
@@ -238,6 +246,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthWeights(args)
 
@@ -254,6 +263,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthWeights(args)
 
@@ -270,6 +280,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthWeights(args)
 
@@ -286,6 +297,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthWeights(args)
 
@@ -302,6 +314,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         batchNormComparisons = [
             {0: [3, 4], 1: [5, 6]},
@@ -325,6 +338,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         batchNormComparisons = [
             {1: [3, 4]},
@@ -383,6 +397,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthFunction(args)
 
@@ -400,6 +415,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthFunction(args)
 
@@ -417,6 +433,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthFunction(args)
 
@@ -434,6 +451,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthFunction(args)
 
@@ -451,6 +469,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthFunction(args)
 
@@ -468,6 +487,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthFunction(args)
 
@@ -485,6 +505,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthFunction(args)
 
@@ -502,6 +523,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthFunction(args)
 
@@ -519,6 +541,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthFunction(args)
 
@@ -536,6 +559,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthFunction(args)
 
@@ -553,6 +577,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthFunction(args)
 
@@ -570,6 +595,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
 
         self.compareGrowthFunction(args)
 
@@ -613,6 +639,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 1), (0, 1), (1, 4), (4, 2), (1, 2)],
@@ -636,6 +663,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 4), (4, 1), (0, 1), (1, 5), (5, 6), (6, 2),
@@ -662,6 +690,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 1), (0, 1), (1, 4), (4, 2), (1, 2)],
@@ -685,6 +714,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 4), (4, 1), (0, 1), (1, 5), (5, 6), (6, 2),
@@ -709,6 +739,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 1), (0, 1), (1, 4), (4, 2), (1, 2)],
@@ -733,6 +764,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 1), (0, 3), (3, 4), (4, 1), (1, 2), (1, 5), (5, 6),
@@ -762,6 +794,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (0, 1), (3, 2), (1, 2)],
@@ -784,6 +817,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 4), (0, 1), (4, 2), (1, 2)],
@@ -807,6 +841,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (0, 1), (3, 2), (1, 2)],
@@ -829,6 +864,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 4), (0, 1), (4, 2), (1, 2)],
@@ -851,6 +887,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (0, 1), (3, 2), (1, 2)],
@@ -873,6 +910,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 4), (0, 1), (4, 2), (1, 2)],
@@ -920,6 +958,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
@@ -942,6 +981,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1},
@@ -966,6 +1006,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
@@ -988,6 +1029,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1},
@@ -1011,6 +1053,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
@@ -1034,6 +1077,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1},
@@ -1058,6 +1102,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1},
@@ -1080,6 +1125,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
@@ -1102,6 +1148,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1},
@@ -1124,6 +1171,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
@@ -1146,6 +1194,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1},
@@ -1168,6 +1217,7 @@ class TestGrowthController(unittest.TestCase):
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
+        args['randomWeights'] = False
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},

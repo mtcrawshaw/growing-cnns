@@ -137,7 +137,7 @@ def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
             settings['growthMode'],
             settings['numConvToAdd'],
             settings['itemsToExpand'],
-            True,
+            settings['randomWeights'],
             settings['copyBatchNorm']
     )
     model = None
@@ -233,7 +233,7 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
             settings['growthMode'],
             settings['numConvToAdd'],
             settings['itemsToExpand'],
-            False,
+            settings['randomWeights'],
             settings['copyBatchNorm']
     )
     totalEpoch = 0
