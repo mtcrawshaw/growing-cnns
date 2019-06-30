@@ -70,6 +70,28 @@ class TestGrowthController(unittest.TestCase):
                 values = [stateDicts[i][paramName].numpy() for i in range(2)]
                 self.assertTrue(np.array_equal(values[0], values[1]))
 
+    # Helper function to test if parameters of batch norm layers were
+    # properly transferred between a network and its successor
+    def assertEqualBatchNorm(self, stateDict1, stateDict2, sourceNode,
+            destNode, args):
+
+        batchNormVars = ['weight', 'bias', 'running_mean', 'running_var',
+                'num_batches_tracked']
+
+        # Check each section for the BN layers that should've been transferred
+        for section in range(args['numSections']):
+
+            sourcePrefix = 'sections.%d.%d.1.' % (section, sourceNode)
+            destPrefix = 'sections.%d.%d.1.' % (section, destNode)
+
+            for batchNormVar in batchNormVars:
+
+                sourceVarName = sourcePrefix + batchNormVar
+                destVarName = sourcePrefix + batchNormVar
+                sourceValue = stateDict1[sourceVarName].numpy()
+                destValue = stateDict1[destVarName].numpy()
+
+                self.assertTrue(np.array_equal(sourceValue, destValue))
 
     """
         Tests whether the corresponding layers between a model and the
@@ -87,6 +109,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthWeights(args)
 
@@ -102,6 +125,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthWeights(args)
 
@@ -117,6 +141,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthWeights(args)
 
@@ -132,6 +157,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthWeights(args)
 
@@ -147,6 +173,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthWeights(args)
 
@@ -162,6 +189,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthWeights(args)
 
@@ -177,6 +205,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthWeights(args)
 
@@ -192,6 +221,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthWeights(args)
 
@@ -207,6 +237,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthWeights(args)
 
@@ -222,6 +253,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthWeights(args)
 
@@ -237,6 +269,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthWeights(args)
 
@@ -252,10 +285,56 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthWeights(args)
 
-    def compareGrowthWeights(self, args):
+    def testGrowthStepWeights_Edge_2_All_BN(self):
+
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = True
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
+
+        batchNormComparisons = [
+            {0: [3, 4], 1: [5, 6]},
+            {0: [7, 8, 9, 10], 3: [11, 12], 4: [13, 14], 1: [15, 16, 17, 18],
+                5: [19, 20], 6: [21, 22]}
+        ]
+
+        self.compareGrowthWeights(args,
+                batchNormComparisons=batchNormComparisons)
+
+    def testGrowthStepWeights_Node_2_All_BN(self):
+
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = True
+        args['growthMode'] = 'expandNode'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
+
+        batchNormComparisons = [
+            {1: [3, 4]},
+            {1: [5, 6], 3: [7, 8], 4: [9, 10]}
+        ]
+
+        self.compareGrowthWeights(args,
+                batchNormComparisons=batchNormComparisons)
+
+    def compareGrowthWeights(self, args, batchNormComparisons=[]):
 
         controller = GrowthController(**args)
         stateDicts = []
@@ -273,6 +352,17 @@ class TestGrowthController(unittest.TestCase):
             self.assertEqualLayers(stateDicts[i], stateDicts[i + 1], nodes[i],
                     args['numSections'])
             self.assertEqualClassifier(stateDicts[i], stateDicts[i + 1])
+
+            # Compare batch norm parameters
+            if len(batchNormComparisons) == 0:
+                continue
+
+            for sourceBnNode in batchNormComparisons[i].keys():
+
+                destBnNodes = batchNormComparisons[i][sourceBnNode]
+                for destBnNode in destBnNodes:
+                    self.assertEqualBatchNorm(stateDicts[i], stateDicts[i + 1],
+                            sourceBnNode, destBnNode, args)
 
 
     """
@@ -292,6 +382,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthFunction(args)
 
@@ -308,6 +399,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthFunction(args)
 
@@ -324,6 +416,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthFunction(args)
 
@@ -340,6 +433,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthFunction(args)
 
@@ -356,6 +450,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthFunction(args)
 
@@ -372,6 +467,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthFunction(args)
 
@@ -388,6 +484,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthFunction(args)
 
@@ -404,6 +501,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthFunction(args)
 
@@ -420,6 +518,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthFunction(args)
 
@@ -436,6 +535,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthFunction(args)
 
@@ -452,6 +552,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthFunction(args)
 
@@ -468,6 +569,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
 
         self.compareGrowthFunction(args)
 
@@ -510,6 +612,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 1), (0, 1), (1, 4), (4, 2), (1, 2)],
@@ -532,6 +635,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 4), (4, 1), (0, 1), (1, 5), (5, 6), (6, 2),
@@ -557,6 +661,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 1), (0, 1), (1, 4), (4, 2), (1, 2)],
@@ -579,6 +684,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 4), (4, 1), (0, 1), (1, 5), (5, 6), (6, 2),
@@ -602,6 +708,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 1), (0, 1), (1, 4), (4, 2), (1, 2)],
@@ -625,6 +732,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 1), (0, 3), (3, 4), (4, 1), (1, 2), (1, 5), (5, 6),
@@ -653,6 +761,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (0, 1), (3, 2), (1, 2)],
@@ -674,6 +783,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 4), (0, 1), (4, 2), (1, 2)],
@@ -696,6 +806,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (0, 1), (3, 2), (1, 2)],
@@ -717,6 +828,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 4), (0, 1), (4, 2), (1, 2)],
@@ -738,6 +850,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (0, 1), (3, 2), (1, 2)],
@@ -759,6 +872,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 4), (0, 1), (4, 2), (1, 2)],
@@ -805,6 +919,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
@@ -826,6 +941,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1},
@@ -849,6 +965,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
@@ -870,6 +987,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1},
@@ -892,6 +1010,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
@@ -914,6 +1033,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandEdge'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1},
@@ -937,6 +1057,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1},
@@ -958,6 +1079,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
@@ -979,6 +1101,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1},
@@ -1000,6 +1123,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
@@ -1021,6 +1145,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 1
         args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1},
@@ -1042,6 +1167,7 @@ class TestGrowthController(unittest.TestCase):
         args['growthMode'] = 'expandNode'
         args['numConvToAdd'] = 2
         args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},

@@ -1,6 +1,5 @@
 Current sprint:
 Get training to run in Colab
-Copy batch norm parameters from previous layer
 Join weighting:
 - Learned free weighting
 - Learned softmax weighting
@@ -24,3 +23,4 @@ Parallelize across multiple GPUs
 Fix argument structure for training/evaluation
 Convert to package and fix imports
 Add option for CPU only
+Add clock time to logs
