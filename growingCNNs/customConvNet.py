@@ -17,7 +17,8 @@ IMAGE_HEIGHT = 32
 class CustomConvNet(nn.Module):
 
     def __init__(self, compGraph, initialChannels=64, numSections=4,
-            numClasses=1000, randomWeights=True, batchNorm=True):
+            numClasses=1000, randomWeights=True, batchNorm=True,
+            joinWeighting='uniform'):
 
         super(CustomConvNet, self).__init__()
 
@@ -48,7 +49,9 @@ class CustomConvNet(nn.Module):
         self.initialChannels = initialChannels
         self.numSections = numSections
         self.batchNorm = batchNorm
+        self.joinWeighting = joinWeighting
         self.sections = self.makeSections()
+        self.joinWeights = self.makeJoinWeights()
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
         # Calculate size of output to classifier
@@ -95,7 +98,7 @@ class CustomConvNet(nn.Module):
         while queue:
             now = queue.popleft()
             inputList = [outputs[i] for i in self.revAdjList[now]]
-            feed = torch.mean(torch.stack(inputList), dim=0)
+            feed = self.joinInputs(section, now, inputList)
             outputs[now] = section[now](feed)
             for v in self.adjList[now]:
                 inDegree[v] -= 1
@@ -104,6 +107,37 @@ class CustomConvNet(nn.Module):
 
         # Returning output of last node
         return outputs[outputIndex]
+
+    """
+        Defines how multiple inputs (convolution activations) are combined
+        into a single tensor to be used as input to a given node's convolution
+        operator. Modes are 'uniform', 'softmax', and 'free', where 'uniform'
+        averages the inputs, 'softmax' performs a weighted average where the
+        weight parameters are learned through backpropagation, and 'free'
+        performs a weighted sum where the weight parameters are learned through
+        backpropagation.
+    """
+    def joinInputs(self, section, node, inputList)
+
+        assert self.joinWeighting in ['uniform', 'softmax', 'free']
+
+        if self.joinWeighting == 'uniform':
+
+            joined = sum([self.joinWeights[section][node][i] * inputList[i] for
+                    i in range(len(inputList))])
+
+        elif self.joinWeighting == 'softmax':
+
+            normalizedWeights = None # Softmax over weights
+            joined = sum([normalizedWeights[i] * inputList[i] for
+                    i in range(len(inputList))])
+
+        elif self.joinWeighting == 'free':
+
+            joined = sum([self.joinWeights[section][node][i] * inputList[i] for
+                    i in range(len(inputList))])
+
+        return joined
 
     """
         If randomWeights is False, then the weights of the convolutional
@@ -176,3 +210,42 @@ class CustomConvNet(nn.Module):
 
         return ListModule(*sections)
 
+    """
+        Produces a list of lists of lists of constant variables, where
+        joinWeights[i][j][k] represents the weight on the k-th input to the
+        j-th node of the i-th section of the network.
+    """
+    def makeJoinWeights(self):
+
+        networkList = []
+        for section in range(self.numSections):
+
+            sectionList = []
+            for node in range(self.compGraph.numNodes):
+
+                nodeList = []
+                for input in range(self.inDegree[node]):
+
+                    # The weights for 'softmax' and 'free' are initialized
+                    # so that they calculate a weighted average, then allowed
+                    # to change from there
+                    if self.joinWeighting == 'uniform':
+                        value = 1. / float(self.inDegree[node])
+                        trainable = False
+                    elif self.joinWeighting == 'softmax':
+                        value = 1.
+                        trainable = True
+                    elif self.joinWeighting = 'free':
+                        value = 1. / float(self.inDegree[node])
+                        trainable = True
+
+                    # None needs to be changed to a pytorch constant variable
+                    # using value and trainable
+                    nodeList.append(None)
+
+                sectionList.append(ListModule(*nodeList))
+
+            networkList.append(ListModule(*sectionList))
+
+        joinWeights = ListModule(*networkList)
+        return joinWeights

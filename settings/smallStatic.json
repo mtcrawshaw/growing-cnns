@@ -11,6 +11,7 @@
     "itemsToExpand": "youngest",
     "copyBatchNorm": true,
     "randomWeights": false,
+    "joinWeighting": "uniform",
     "stoppingCriteria": {
 	    "type": "lossConvergence",
 	    "testWindow": 2,

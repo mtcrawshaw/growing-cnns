@@ -17,7 +17,7 @@ class GrowthController():
     def __init__(self, initialChannels=64, numSections=4, initialNumNodes=3,
             growthSteps=3, numClasses=1000, batchNorm=True,
             growthMode='expandEdge', numConvToAdd=1, itemsToExpand='youngest',
-            randomWeights=False, copyBatchNorm=True):
+            randomWeights=False, copyBatchNorm=True, joinWeighting='uniform'):
         
         self.numClasses = numClasses
         self.batchNorm = batchNorm
@@ -32,6 +32,7 @@ class GrowthController():
         self.itemsToExpand = itemsToExpand
         self.randomWeights = randomWeights
         self.copyBatchNorm = copyBatchNorm
+        self.joinWeighting = joinWeighting
 
         # The ith element of growthHistory is the growth step during which the
         # ith node of the current model's computation graph was inserted.
@@ -54,7 +55,8 @@ class GrowthController():
                     initialChannels=self.initialChannels,
                     numSections=self.numSections,
                     numClasses=self.numClasses,
-                    batchNorm=self.batchNorm
+                    batchNorm=self.batchNorm,
+                    joinWeighting=self.joinWeighting
             ) 
             for i in compGraph.nodes:
                 self.growthHistory[i] = 0
@@ -76,7 +78,8 @@ class GrowthController():
                 numSections=self.numSections,
                 numClasses=self.numClasses,
                 batchNorm=self.batchNorm, 
-                randomWeights=self.randomWeights
+                randomWeights=self.randomWeights,
+                joinWeighting=self.joinWeighting
         )
 
         # Transfer weights from old model to new model
