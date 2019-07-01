@@ -5,11 +5,11 @@ import argparse
 # To handle running this script as main, or just import this script
 try:
     from .plotSettings import *
-    from .preprocessing import read_log
+    from .preprocessing import *
     from .graph import graph
 except:
     from plotSettings import *
-    from preprocessing import read_log
+    from preprocessing import *
     from graph import graph
 
 def main(**kwargs):
@@ -18,11 +18,12 @@ def main(**kwargs):
     projectRoot = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     logFilename = os.path.join(projectRoot, 'experiments',
             kwargs['experimentName'], '%s.log' % kwargs['experimentName'])
-    dfs = read_log(logFilename)
+    lengths = getLogLengths([logFilename])
+    dfs = read_log(logFilename, lengths)
 
     #===DEBUG===
     print(dfs)
-    exit()
+    # exit()
     #===DEBUG===
 
     # Create plot
