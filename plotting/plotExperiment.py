@@ -18,7 +18,7 @@ def main(**kwargs):
     projectRoot = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     logFilename = os.path.join(projectRoot, 'experiments',
             kwargs['experimentName'], '%s.log' % kwargs['experimentName'])
-    lengths = getLogLengths([logFilename])
+    lengths = getLogLengths([kwargs['experimentName']])
     dfs = read_log(logFilename, lengths)
 
     #===DEBUG===
