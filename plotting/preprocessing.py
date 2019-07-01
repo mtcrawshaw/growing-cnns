@@ -42,19 +42,18 @@ def read_log(filename, lengths=None):
 
                 metricList.append(list(row))
 
-            if lengths is None:
-                continue
+            if lengths is not None:
 
-            # Extend the dataframe length so that all dataframes which will
-            # be plotted together have the same length
-            lastValue = results[splitKey][numIterations - 1][metric]
-            i = numIterations - 1
-            while len(metricList) < lengths[split]:
-                i += 1
-                row = []
-                row.append(lastValue)
-                row.append(i * printFrequency)
-                metricList.append(list(row))
+                # Extend the dataframe length so that all dataframes which will
+                # be plotted together have the same length
+                lastValue = results[splitKey][numIterations - 1][metric]
+                i = numIterations - 1
+                while len(metricList) < lengths[split]:
+                    i += 1
+                    row = []
+                    row.append(lastValue)
+                    row.append(i * printFrequency)
+                    metricList.append(list(row))
 
             dfs[yLabel] = pd.DataFrame(metricList)
             dfs[yLabel].columns = [yLabel, 'index']
