@@ -1,5 +1,7 @@
 # Why the code you have written for plotting does not work.
 
+Obviously this title is meant to be tongue-in-cheek. The code I left you with was crap. It was bound to break during your efforts to clean it up. 
+
 The original error we got was the following:
 
 `UnboundLocalError: local variable 'ax' referenced before assignment`
