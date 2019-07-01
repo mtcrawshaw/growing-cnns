@@ -16,5 +16,8 @@ To train a Growing CNN on the CIFAR-10 dataset, from the root of the project run
 python3 main.py example settings/exampleGrowingSettings.json
 ```
 
+## Branch: develop\_b
+Test commit.
+
 ## Contact
 If you are interested in contacting the author, please use the following email: michael.crawshaw.4@gmail.com
