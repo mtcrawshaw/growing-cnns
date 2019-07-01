@@ -9,7 +9,7 @@ import matplotlib.font_manager as fm
 import matplotlib.transforms as transforms
 import pandas as pd
 
-# To handle running this script as main, or just import this script
+# To handle running this script as main, or just import this script.
 try:
     from .plotSettings import *
 except:
@@ -17,10 +17,14 @@ except:
 
 def graph(dfs, title, filename):
     
-    # figure initialization
+    # Figure initialization.
     fig, axlist = plt.subplots(figsize=(plot_width, plot_height),nrows=len(dfs))
     color_index = 0
     num_colors = sum([len(df.columns) - 1 for df in dfs.values()])
+   
+    # Sanity check.
+    assert len(dfs) > 0
+    assert len(dfs) == len(axlist)
     
     for i, (metric, df) in enumerate(dfs.items()):
         ax = axlist[i]

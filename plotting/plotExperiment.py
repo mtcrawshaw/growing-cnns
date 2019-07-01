@@ -12,18 +12,23 @@ except:
     from preprocessing import read_log
     from graph import graph
 
-def main(**args):
+def main(**kwargs):
  
     # Read log
     projectRoot = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     logFilename = os.path.join(projectRoot, 'experiments',
-            args['experimentName'], '%s.log' % args['experimentName'])
+            kwargs['experimentName'], '%s.log' % kwargs['experimentName'])
     dfs = read_log(logFilename)
 
+    #===DEBUG===
+    print(dfs)
+    exit()
+    #===DEBUG===
+
     # Create plot
-    plotFile = os.path.join(projectRoot, 'experiments', args['experimentName'],
-            '%s.svg' % args['experimentName'])
-    graph(dfs, args['experimentName'], plotFile)
+    plotFile = os.path.join(projectRoot, 'experiments', kwargs['experimentName'],
+            '%s.svg' % kwargs['experimentName'])
+    graph(dfs, kwargs['experimentName'], plotFile)
 
 if __name__ == '__main__':
     

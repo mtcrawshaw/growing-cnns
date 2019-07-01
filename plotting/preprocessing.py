@@ -18,6 +18,10 @@ def read_log(filename, lengths=None):
     with open(filename, encoding='utf-8') as resultsFile:
         results = json.load(resultsFile)
 
+    #===DEBUG===
+    print(results)
+    #===DEBUG=== 
+
     splits = ['train', 'validate']
     performanceMetrics = ['loss', 'top1']
 
@@ -32,6 +36,9 @@ def read_log(filename, lengths=None):
         numIterations = len(results[splitKey])
 
         for metric in performanceMetrics:
+            #===DEBUG===
+            print("Enters performanceMetrics loop.")
+            #===DEBUG=== 
             
             metricList = []
             yLabel = '%s_%s' % (split, metric)
@@ -43,6 +50,9 @@ def read_log(filename, lengths=None):
                 metricList.append(list(row))
 
             if lengths is None:
+                #===DEBUG===
+                print("lengths is None.")
+                #===DEBUG===     
                 continue
 
             # Extend the dataframe length so that all dataframes which will
@@ -56,6 +66,10 @@ def read_log(filename, lengths=None):
                 row.append(i * printFrequency)
                 metricList.append(list(row))
 
+            #===DEBUG===
+            print("yLabel", yLabel)
+            #===DEBUG=== 
+            
             dfs[yLabel] = pd.DataFrame(metricList)
             dfs[yLabel].columns = [yLabel, 'index']
 
