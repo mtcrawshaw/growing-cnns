@@ -17,7 +17,7 @@ python3 main.py example settings/exampleGrowingSettings.json
 ```
 
 ## Branch: develop\_b
-Test commit.
+Read the `README.md` in `plotting/`. 
 
 ## Contact
 If you are interested in contacting the author, please use the following email: michael.crawshaw.4@gmail.com

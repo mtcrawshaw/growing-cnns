@@ -74,4 +74,4 @@ It was. The `read_log` function is quite a bit different than what I wrote. It a
                 continue
 ```
 
-And so we never add anything to the `dfs` dict. 
+And so we never add anything to the `dfs` dict. Long story short, I fixed it by calling your `preprocessing.getLogLengths` function in `plotExperiment.py`. I added some debug statements in the three files mentioned above which will need to be removed. I suggest cleaning them up and merging this branch with master, as I recreated `develop_b` today from whatever your latest commit to master was.  
