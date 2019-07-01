@@ -10,7 +10,7 @@ on line 72 of `graph.py`.
 
 A look at this file reveals that `ax` is initialized in the following for-loop:
 
-```
+```python
 for i, (metric, df) in enumerate(dfs.items()):
         ax = axlist[i]
         ...
@@ -18,7 +18,7 @@ for i, (metric, df) in enumerate(dfs.items()):
 
 My thinking is that `dfs` must be empty, if `ax` is never getting initialized. I added the following block:
 
-```
+```python
 #===DEBUG===
 # Sanity check.
 assert len(dfs) > 0
@@ -28,7 +28,7 @@ assert len(dfs) == len(axlist)
 
 Which confirmed my hunch:
 
-```
+```python
 Traceback (most recent call last):
   File "plotting/plotExperiment.py", line 37, in <module>
     main(**args)
@@ -41,7 +41,7 @@ AssertionError
 
 The function `graph.graph` is being called inside `plotExperiment.py`, at the end of the `main` function:
 
-```
+```python
 def main(**kwargs):
 
     # Read log
@@ -59,7 +59,7 @@ def main(**kwargs):
 
 I added the following block to check if the output of `preprocessing.read_log` is empty:
 
-```
+```python
     #===DEBUG===
     print(dfs)
     exit()
@@ -68,7 +68,7 @@ I added the following block to check if the output of `preprocessing.read_log` i
 
 It was. The `read_log` function is quite a bit different than what I wrote. It appears the optional argument `lengths` isn't passed in `plotExperiment.py`, and so the following block always executes:
 
-```
+```python
             if lengths is None:
                 #===DEBUG===
                 print("lengths is None.")
