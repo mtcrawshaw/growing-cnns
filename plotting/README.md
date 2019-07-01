@@ -28,7 +28,7 @@ assert len(dfs) == len(axlist)
 
 Which confirmed my hunch:
 
-```python
+```bash
 Traceback (most recent call last):
   File "plotting/plotExperiment.py", line 37, in <module>
     main(**args)
