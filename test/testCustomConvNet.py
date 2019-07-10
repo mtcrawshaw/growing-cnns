@@ -395,7 +395,7 @@ class TestCustomConvNet(unittest.TestCase):
         convParams = [
                 (1., 0.),
                 (2., 1.),
-                (2., -1.),
+                (2., 2.),
                 (.5, 0.),
                 (.5, 1.),
                 (1., 1.),
@@ -469,8 +469,8 @@ class TestCustomConvNet(unittest.TestCase):
                         expectedOutput[b, c, x, y] = b + c + maxX + maxY
 
                         for i in range(args['numSections']):
-                            expectedOutput[b, c, x, y] *= 10.75
-                            expectedOutput[b, c, x, y] += 6.8
+                            expectedOutput[b, c, x, y] *= 4.675
+                            expectedOutput[b, c, x, y] += 6.85
 
         # Test output
         outputValue = output.detach().cpu().numpy()
