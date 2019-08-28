@@ -19,9 +19,13 @@ Get training to run in Colab
 Add ImageNet + other datasets
 Dynamic batch sizes across growth steps using model size estimation (https://github.com/jacobkimmel/pytorch_modelsize)
 Clean/break up main
-Clean/break up testGrowthController.py
 Parallelize across multiple GPUs
 Fix argument structure for training/evaluation
 Convert to package and fix imports
 Add option for CPU only
 Add clock time to logs
+
+Notes for tomorrow:
+Gotta add tests for preserving the function across growth steps with different join types (especially for learned/random join weights)
+Gotta add comparing the join weights across growth steps with different join types
+Gotta add functionality to make newly joined input the weighted average of old input and new one
