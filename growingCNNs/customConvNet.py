@@ -31,6 +31,13 @@ class CustomConvNet(nn.Module):
             self.adjList[s].append(e)
             self.revAdjList[e].append(s)
 
+        # Sort adjacency lists so that when inputs to a node are joined
+        # (in function joinInputs), the index of a join weight is consistent
+        # between growth steps
+        for n in self.compGraph.nodes:
+            self.adjList[n] = sorted(self.adjList[n])
+            self.revAdjList[n] = sorted(self.revAdjList[n])
+
         # Check that input node has no parent nodes and output node has no
         # child nodes
         inputIndex = self.compGraph.inputIndex
@@ -97,6 +104,7 @@ class CustomConvNet(nn.Module):
             inputs = torch.stack(inputList)
             feed = self.joinInputs(sectionIndex, now, inputs)
             outputs[now] = section[now](feed)
+
             for v in self.adjList[now]:
                 inDegree[v] -= 1
                 if inDegree[v] == 0:

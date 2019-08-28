@@ -88,7 +88,6 @@ def expandEdge(compGraph, growthHistory, numConvToAdd, itemsToExpand):
             compGraph.outputIndex
     )
 
-    # Empty list shows that no weights need to be copied to new nodes
     return newCompGraph, nodesToCopy
 
 """
@@ -148,6 +147,7 @@ def expandNode(compGraph, growthHistory, numConvToAdd, itemsToExpand):
             # to the first new node in the expansion, to preserve
             # the function computed by the network
             nodesToCopy.append((node, currentNode, 'conv'))
+            nodesToCopy.append((node, currentNode, 'join'))
 
             # Connect adjacent new nodes
             for i in range(numConvToAdd - 1):

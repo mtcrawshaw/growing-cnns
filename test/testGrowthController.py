@@ -398,6 +398,7 @@ class TestGrowthController(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
+        args['joinWeighting'] = 'uniform'
 
         self.compareGrowthFunction(args)
 
@@ -416,6 +417,7 @@ class TestGrowthController(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
+        args['joinWeighting'] = 'uniform'
 
         self.compareGrowthFunction(args)
 
@@ -434,6 +436,7 @@ class TestGrowthController(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
+        args['joinWeighting'] = 'uniform'
 
         self.compareGrowthFunction(args)
 
@@ -452,6 +455,7 @@ class TestGrowthController(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
+        args['joinWeighting'] = 'uniform'
 
         self.compareGrowthFunction(args)
 
@@ -470,6 +474,7 @@ class TestGrowthController(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
+        args['joinWeighting'] = 'uniform'
 
         self.compareGrowthFunction(args)
 
@@ -488,6 +493,7 @@ class TestGrowthController(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
+        args['joinWeighting'] = 'uniform'
 
         self.compareGrowthFunction(args)
 
@@ -506,6 +512,7 @@ class TestGrowthController(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
+        args['joinWeighting'] = 'uniform'
 
         self.compareGrowthFunction(args)
 
@@ -524,6 +531,7 @@ class TestGrowthController(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
+        args['joinWeighting'] = 'uniform'
 
         self.compareGrowthFunction(args)
 
@@ -542,6 +550,7 @@ class TestGrowthController(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
+        args['joinWeighting'] = 'uniform'
 
         self.compareGrowthFunction(args)
 
@@ -560,6 +569,7 @@ class TestGrowthController(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
+        args['joinWeighting'] = 'uniform'
 
         self.compareGrowthFunction(args)
 
@@ -578,6 +588,7 @@ class TestGrowthController(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
+        args['joinWeighting'] = 'uniform'
 
         self.compareGrowthFunction(args)
 
@@ -596,6 +607,7 @@ class TestGrowthController(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
+        args['joinWeighting'] = 'uniform'
 
         self.compareGrowthFunction(args)
 

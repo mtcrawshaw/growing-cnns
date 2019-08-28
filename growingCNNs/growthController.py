@@ -93,13 +93,16 @@ class GrowthController():
 
                 if j in oldNodes:
 
-                    # Grab state dictionary from old layer
+                    # Convolutional weights
                     oldLayer = oldModel.sections[i][j]
                     oldStateDict = oldLayer.state_dict()
-
-                    # Load old state dictionary into new layer
                     newLayer = newModel.sections[i][j]
                     newLayer.load_state_dict(oldStateDict)
+
+                    # Join weights
+                    oldJoinWeights = oldModel.joinWeights[i][j]
+                    n = oldJoinWeights.shape[0]
+                    newModel.joinWeights[i][j][:n].data = oldJoinWeights.data
 
                 else:
 
@@ -110,7 +113,7 @@ class GrowthController():
             # to preserve the function calculated by the network
             for sourceNode, destNode, weightToCopy in nodesToCopy:
 
-                assert weightToCopy in ['conv', 'bn']
+                assert weightToCopy in ['conv', 'bn', 'join']
 
                 if weightToCopy == 'conv':
 
@@ -125,6 +128,7 @@ class GrowthController():
                 elif weightToCopy == 'bn':
 
                     if self.batchNorm and self.copyBatchNorm:
+
                         # Grab state dictionary from source layer
                         bnIndex = 1
                         sourceLayer = oldModel.sections[i][sourceNode][bnIndex]
@@ -134,6 +138,12 @@ class GrowthController():
                         destLayer = newModel.sections[i][destNode][bnIndex]
                         destLayer.load_state_dict(sourceStateDict)
 
+                elif weightToCopy == 'join':
+
+                    # Grab join weights from source node and insert into
+                    joinWeights = oldModel.joinWeights[i][sourceNode].data
+                    n = oldJoinWeights.shape[0]
+                    newModel.joinWeights[i][destNode][:n].data = joinWeights
 
 
         # Transfer classifier weights
