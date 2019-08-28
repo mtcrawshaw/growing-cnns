@@ -1,1 +1,1 @@
-python3 -m unittest testGrowthController.py testCustomConvNet.py
+python3 -m unittest testGrowthController/*.py testCustomConvNet.py
