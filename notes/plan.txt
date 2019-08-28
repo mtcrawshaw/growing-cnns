@@ -1,5 +1,4 @@
 Current sprint:
-Get training to run in Colab
 Join weighting:
 - Learned free weighting
 - Learned softmax weighting
@@ -15,6 +14,8 @@ Growth step transfers weights with best validation performance
 Different block types
 
 Errand cards:
+Convert to package
+Get training to run in Colab
 Add ImageNet + other datasets
 Dynamic batch sizes across growth steps using model size estimation (https://github.com/jacobkimmel/pytorch_modelsize)
 Clean/break up main
