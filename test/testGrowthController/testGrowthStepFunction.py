@@ -11,6 +11,7 @@ testRoot = os.path.join(projectRoot, 'test')
 sys.path.append(testRoot)
 testUtils = importlib.import_module('testUtils')
 getTestInput = testUtils.getTestInput
+maxDiff = testUtils.maxDiff
 
 packageRoot = os.path.join(projectRoot, 'growingCNNs')
 sys.path.append(packageRoot)
@@ -23,7 +24,7 @@ class TestGrowthStepFunction(unittest.TestCase):
         Tests whether a model and the resulting model after a growth step
         calculate the same output given the same input.
     """
-    def testGrowthStepFunction_Edge_1_Youngest(self):
+    def testGrowthStepFunction_Edge_1_Youngest_Uniform(self):
 
         # Create growth controller
         args = {}
@@ -42,7 +43,7 @@ class TestGrowthStepFunction(unittest.TestCase):
 
         self.compareGrowthFunction(args)
 
-    def testGrowthStepFunction_Edge_2_Youngest(self):
+    def testGrowthStepFunction_Edge_2_Youngest_Uniform(self):
 
         # Create growth controller
         args = {}
@@ -61,7 +62,7 @@ class TestGrowthStepFunction(unittest.TestCase):
 
         self.compareGrowthFunction(args)
 
-    def testGrowthStepFunction_Edge_1_Oldest(self):
+    def testGrowthStepFunction_Edge_1_Oldest_Uniform(self):
 
         # Create growth controller
         args = {}
@@ -80,7 +81,7 @@ class TestGrowthStepFunction(unittest.TestCase):
 
         self.compareGrowthFunction(args)
 
-    def testGrowthStepFunction_Edge_2_Oldest(self):
+    def testGrowthStepFunction_Edge_2_Oldest_Uniform(self):
 
         # Create growth controller
         args = {}
@@ -99,7 +100,7 @@ class TestGrowthStepFunction(unittest.TestCase):
 
         self.compareGrowthFunction(args)
 
-    def testGrowthStepFunction_Edge_1_All(self):
+    def testGrowthStepFunction_Edge_1_All_Uniform(self):
 
         # Create growth controller
         args = {}
@@ -118,7 +119,7 @@ class TestGrowthStepFunction(unittest.TestCase):
 
         self.compareGrowthFunction(args)
 
-    def testGrowthStepFunction_Edge_2_All(self):
+    def testGrowthStepFunction_Edge_2_All_Uniform(self):
 
         # Create growth controller
         args = {}
@@ -137,7 +138,7 @@ class TestGrowthStepFunction(unittest.TestCase):
 
         self.compareGrowthFunction(args)
 
-    def testGrowthStepFunction_Node_1_Youngest(self):
+    def testGrowthStepFunction_Node_1_Youngest_Uniform(self):
 
         # Create growth controller
         args = {}
@@ -156,7 +157,7 @@ class TestGrowthStepFunction(unittest.TestCase):
 
         self.compareGrowthFunction(args)
 
-    def testGrowthStepFunction_Node_2_Youngest(self):
+    def testGrowthStepFunction_Node_2_Youngest_Uniform(self):
 
         # Create growth controller
         args = {}
@@ -175,7 +176,7 @@ class TestGrowthStepFunction(unittest.TestCase):
 
         self.compareGrowthFunction(args)
 
-    def testGrowthStepFunction_Node_1_Oldest(self):
+    def testGrowthStepFunction_Node_1_Oldest_Uniform(self):
 
         # Create growth controller
         args = {}
@@ -194,7 +195,7 @@ class TestGrowthStepFunction(unittest.TestCase):
 
         self.compareGrowthFunction(args)
 
-    def testGrowthStepFunction_Node_2_Oldest(self):
+    def testGrowthStepFunction_Node_2_Oldest_Uniform(self):
 
         # Create growth controller
         args = {}
@@ -213,7 +214,7 @@ class TestGrowthStepFunction(unittest.TestCase):
 
         self.compareGrowthFunction(args)
 
-    def testGrowthStepFunction_Node_1_All(self):
+    def testGrowthStepFunction_Node_1_All_Uniform(self):
 
         # Create growth controller
         args = {}
@@ -232,7 +233,7 @@ class TestGrowthStepFunction(unittest.TestCase):
 
         self.compareGrowthFunction(args)
 
-    def testGrowthStepFunction_Node_2_All(self):
+    def testGrowthStepFunction_Node_2_All_Uniform(self):
 
         # Create growth controller
         args = {}
@@ -248,6 +249,462 @@ class TestGrowthStepFunction(unittest.TestCase):
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
         args['joinWeighting'] = 'uniform'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Edge_1_Youngest_Softmax(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'softmax'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Edge_2_Youngest_Softmax(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'softmax'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Edge_1_Oldest_Softmax(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'softmax'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Edge_2_Oldest_Softmax(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'softmax'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Edge_1_All_Softmax(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'softmax'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Edge_2_All_Softmax(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'softmax'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Node_1_Youngest_Softmax(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandNode'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'softmax'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Node_2_Youngest_Softmax(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandNode'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'softmax'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Node_1_Oldest_Softmax(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandNode'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'softmax'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Node_2_Oldest_Softmax(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandNode'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'softmax'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Node_1_All_Softmax(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandNode'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'softmax'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Node_2_All_Softmax(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandNode'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'softmax'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Edge_1_Youngest_Free(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'free'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Edge_2_Youngest_Free(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'free'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Edge_1_Oldest_Free(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'free'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Edge_2_Oldest_Free(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'free'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Edge_1_All_Free(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'free'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Edge_2_All_Free(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandEdge'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'free'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Node_1_Youngest_Free(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandNode'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'free'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Node_2_Youngest_Free(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandNode'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'youngest'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'free'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Node_1_Oldest_Free(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandNode'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'free'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Node_2_Oldest_Free(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandNode'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'oldest'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'free'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Node_1_All_Free(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandNode'
+        args['numConvToAdd'] = 1
+        args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'free'
+
+        self.compareGrowthFunction(args)
+
+    def testGrowthStepFunction_Node_2_All_Free(self):
+
+        # Create growth controller
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandNode'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinWeighting'] = 'free'
 
         self.compareGrowthFunction(args)
 
@@ -270,6 +727,7 @@ class TestGrowthStepFunction(unittest.TestCase):
 
         # Compare outputs
         for i in range(args['growthSteps'] - 1):
+            print(maxDiff(outputs[i], outputs[i + 1]))
             self.assertTrue(np.allclose(outputs[i], outputs[i + 1], atol=1e-6))
 
 if __name__ == '__main__':

@@ -1,5 +1,7 @@
 import math
 
+import torch
+
 # This is in case no parent packages are imported, such as in the test cases
 try:
     from .customConvNet import CustomConvNet
@@ -100,9 +102,14 @@ class GrowthController():
                     newLayer.load_state_dict(oldStateDict)
 
                     # Join weights
-                    oldJoinWeights = oldModel.joinWeights[i][j]
-                    n = oldJoinWeights.shape[0]
-                    newModel.joinWeights[i][j][:n].data = oldJoinWeights.data
+                    # We have to use torch.no_grad instead of loading from/to
+                    # the state dict, since we only want to modify the first
+                    # n elements of the join weight vector.
+                    if self.joinWeighting in ['softmax', 'free']:
+                        oldJoinWeights = oldModel.joinWeights[i][j]
+                        n = oldJoinWeights.shape[0]
+                        with torch.no_grad():
+                            newModel.joinWeights[i][j][:n] = oldJoinWeights
 
                 else:
 
@@ -141,9 +148,10 @@ class GrowthController():
                 elif weightToCopy == 'join':
 
                     # Grab join weights from source node and insert into
-                    joinWeights = oldModel.joinWeights[i][sourceNode].data
-                    n = oldJoinWeights.shape[0]
-                    newModel.joinWeights[i][destNode][:n].data = joinWeights
+                    joinWeights = oldModel.joinWeights[i][sourceNode]
+                    n = joinWeights.shape[0]
+                    with torch.no_grad():
+                        newModel.joinWeights[i][destNode][:n] = joinWeights
 
 
         # Transfer classifier weights

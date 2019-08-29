@@ -26,6 +26,5 @@ Add option for CPU only
 Add clock time to logs
 
 Notes for tomorrow:
-Gotta add tests for preserving the function across growth steps with different join types (especially for learned/random join weights)
-Gotta add comparing the join weights across growth steps with different join types
-Gotta add functionality to make newly joined input the weighted average of old input and new one
+Add functionality to make newly joined input the weighted average of old input and new one
+Add tests for softmax/free join weights that are not equal to initialized version

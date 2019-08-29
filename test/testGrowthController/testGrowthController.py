@@ -31,30 +31,5 @@ class TestGrowthController(unittest.TestCase):
         self.assertTrue(np.allclose(output, testInput))
 
 
-def getActivations(testInput, model):
-
-    currentActivations = [testInput]
-
-    features = model.features._modules.values()
-    for feature in features:
-        prevLayer = currentActivations[-1]
-        currentActivations.append(feature(prevLayer))
-
-    classifierLayers = model.classifier._modules.values()
-    for i, layer in enumerate(classifierLayers):
-        prevLayer = currentActivations[-1]
-        if i == 0:
-            prevLayer = prevLayer.view(prevLayer.size(0), -1)
-        currentActivations.append(layer(prevLayer))
-
-    for i in range(len(currentActivations)):
-        currentActivations[i] = currentActivations[i].detach().cpu().numpy()
-
-    return list(currentActivations)
-
-
-def maxDiff(arr1, arr2):
-    return np.amax(np.absolute(arr1 - arr2))
-
 if __name__ == '__main__':
     unittest.main()
