@@ -127,6 +127,9 @@ def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
 
     # Create model. Here we grow a model to full size without any training
     # until the model is full-grown.
+    joinPreserve = None
+    if 'joinPreserve' in settings['joinWeighting']:
+        joinPreserve = settings['joinWeighting']['preserve']
     growthController = GrowthController(
             settings['initialChannels'],
             settings['numSections'],
@@ -139,7 +142,8 @@ def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
             settings['itemsToExpand'],
             settings['randomWeights'],
             settings['copyBatchNorm'],
-            settings['joinWeighting']
+            settings['joinWeighting']['type'],
+            joinPreserve
     )
     model = None
     for growthStep in range(settings['growthSteps']):
@@ -224,6 +228,9 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
         valDataset):
     
     # Create growth controller
+    joinPreserve = None
+    if 'joinPreserve' in settings['joinWeighting']:
+        joinPreserve = settings['joinWeighting']['preserve']
     growthController = GrowthController(
             settings['initialChannels'],
             settings['numSections'],

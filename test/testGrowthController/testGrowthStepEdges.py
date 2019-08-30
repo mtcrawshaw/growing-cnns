@@ -38,7 +38,7 @@ class TestGrowthStepEdges(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 1), (0, 1), (1, 4), (4, 2), (1, 2)],
@@ -63,7 +63,7 @@ class TestGrowthStepEdges(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 4), (4, 1), (0, 1), (1, 5), (5, 6), (6, 2),
@@ -91,7 +91,7 @@ class TestGrowthStepEdges(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 1), (0, 1), (1, 4), (4, 2), (1, 2)],
@@ -116,7 +116,7 @@ class TestGrowthStepEdges(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 4), (4, 1), (0, 1), (1, 5), (5, 6), (6, 2),
@@ -142,7 +142,7 @@ class TestGrowthStepEdges(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 1), (0, 1), (1, 4), (4, 2), (1, 2)],
@@ -168,7 +168,7 @@ class TestGrowthStepEdges(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 1), (0, 3), (3, 4), (4, 1), (1, 2), (1, 5), (5, 6),
@@ -199,7 +199,7 @@ class TestGrowthStepEdges(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (0, 1), (3, 2), (1, 2)],
@@ -223,7 +223,7 @@ class TestGrowthStepEdges(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 4), (0, 1), (4, 2), (1, 2)],
@@ -248,7 +248,7 @@ class TestGrowthStepEdges(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (0, 1), (3, 2), (1, 2)],
@@ -272,7 +272,7 @@ class TestGrowthStepEdges(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 4), (0, 1), (4, 2), (1, 2)],
@@ -296,7 +296,7 @@ class TestGrowthStepEdges(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (0, 1), (3, 2), (1, 2)],
@@ -320,7 +320,7 @@ class TestGrowthStepEdges(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedEdges = [
                 [(0, 1), (1, 2)],
                 [(0, 3), (3, 4), (0, 1), (4, 2), (1, 2)],

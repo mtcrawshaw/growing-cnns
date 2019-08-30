@@ -47,7 +47,7 @@ class TestGrowthStepWeights(unittest.TestCase):
     # Helper function to test if weights were properly transferred between
     # a network and its successor
     def assertEqualLayers(self, stateDict1, stateDict2, oldNodes, numSections,
-            testJoinWeights=False):
+            testJoinWeights=False, alpha=1.):
 
         stateDicts = [stateDict1, stateDict2]
 
@@ -86,7 +86,17 @@ class TestGrowthStepWeights(unittest.TestCase):
                 elif 'joinWeights' in paramName:
                     n = min(len(values[0]), len(values[1]))
                     if testJoinWeights:
-                        self.assertTrue(np.array_equal(values[0][:n], values[1][:n]))
+                        if n < len(values[1]):
+                            self.assertTrue(np.array_equal(
+                                values[0][:n] * alpha,
+                                values[1][:n]
+                            ))
+                        else:
+                            self.assertTrue(np.array_equal(
+                                values[0][:n],
+                                values[1][:n]
+                            ))
+
 
     # Helper function to test if parameters of batch norm layers were
     # properly transferred between a network and its successor
@@ -129,7 +139,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
+        args['joinPreserve'] = 0.9
 
         self.compareGrowthWeights(args)
 
@@ -147,7 +158,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
+        args['joinPreserve'] = 0.9
 
         self.compareGrowthWeights(args)
 
@@ -165,7 +177,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
+        args['joinPreserve'] = 0.9
 
         self.compareGrowthWeights(args)
 
@@ -183,7 +196,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
+        args['joinPreserve'] = 0.9
 
         self.compareGrowthWeights(args)
 
@@ -201,7 +215,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
+        args['joinPreserve'] = 0.9
 
         self.compareGrowthWeights(args)
 
@@ -219,7 +234,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
+        args['joinPreserve'] = 0.9
 
         self.compareGrowthWeights(args)
 
@@ -237,7 +253,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
+        args['joinPreserve'] = 0.9
 
         self.compareGrowthWeights(args)
 
@@ -255,7 +272,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
+        args['joinPreserve'] = 0.9
 
         self.compareGrowthWeights(args)
 
@@ -273,7 +291,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
+        args['joinPreserve'] = 0.9
 
         self.compareGrowthWeights(args)
 
@@ -291,7 +310,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
+        args['joinPreserve'] = 0.9
 
         self.compareGrowthWeights(args)
 
@@ -309,7 +329,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
+        args['joinPreserve'] = 0.9
 
         self.compareGrowthWeights(args)
 
@@ -327,7 +348,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
+        args['joinPreserve'] = 0.9
 
         self.compareGrowthWeights(args)
 
@@ -345,7 +367,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
+        args['joinPreserve'] = 0.9
 
         batchNormComparisons = [
             {0: [3, 4], 1: [5, 6]},
@@ -370,7 +393,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
+        args['joinPreserve'] = 0.9
 
         batchNormComparisons = [
             {1: [3, 4]},
@@ -394,9 +418,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'softmax'
+        args['joinType'] = 'softmax'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Edge_2_Youngest_Softmax(self):
 
@@ -412,9 +438,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'softmax'
+        args['joinType'] = 'softmax'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Edge_1_Oldest_Softmax(self):
 
@@ -430,9 +458,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'softmax'
+        args['joinType'] = 'softmax'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Edge_2_Oldest_Softmax(self):
 
@@ -448,9 +478,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'softmax'
+        args['joinType'] = 'softmax'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Edge_1_All_Softmax(self):
 
@@ -466,9 +498,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'softmax'
+        args['joinType'] = 'softmax'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Edge_2_All_Softmax(self):
 
@@ -484,9 +518,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'softmax'
+        args['joinType'] = 'softmax'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Node_1_Youngest_Softmax(self):
 
@@ -502,9 +538,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'softmax'
+        args['joinType'] = 'softmax'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Node_2_Youngest_Softmax(self):
 
@@ -520,9 +558,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'softmax'
+        args['joinType'] = 'softmax'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Node_1_Oldest_Softmax(self):
 
@@ -538,9 +578,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'softmax'
+        args['joinType'] = 'softmax'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Node_2_Oldest_Softmax(self):
 
@@ -556,9 +598,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'softmax'
+        args['joinType'] = 'softmax'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Node_1_All_Softmax(self):
 
@@ -574,9 +618,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'softmax'
+        args['joinType'] = 'softmax'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Node_2_All_Softmax(self):
 
@@ -592,9 +638,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'softmax'
+        args['joinType'] = 'softmax'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Edge_2_All_BN_Softmax(self):
 
@@ -610,7 +658,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'softmax'
+        args['joinType'] = 'softmax'
+        args['joinPreserve'] = 0.9
 
         batchNormComparisons = [
             {0: [3, 4], 1: [5, 6]},
@@ -618,9 +667,13 @@ class TestGrowthStepWeights(unittest.TestCase):
                 5: [19, 20], 6: [21, 22]}
         ]
 
-        self.compareGrowthWeights(args,
+        alpha = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(
+                args,
                 batchNormComparisons=batchNormComparisons,
-                testJoinWeights=True)
+                testJoinWeights=True,
+                alpha=alpha
+        )
 
     def testGrowthStepWeights_Node_2_All_BN_Softmax(self):
 
@@ -636,16 +689,21 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'softmax'
+        args['joinType'] = 'softmax'
+        args['joinPreserve'] = 0.9
 
         batchNormComparisons = [
             {1: [3, 4]},
             {1: [5, 6], 3: [7, 8], 4: [9, 10]}
         ]
 
-        self.compareGrowthWeights(args,
+        alpha = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(
+                args,
                 batchNormComparisons=batchNormComparisons,
-                testJoinWeights=True)
+                testJoinWeights=True,
+                alpha=alpha
+        )
 
     def testGrowthStepWeights_Edge_1_Youngest_Free(self):
 
@@ -661,9 +719,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'free'
+        args['joinType'] = 'free'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve']
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Edge_2_Youngest_Free(self):
 
@@ -679,9 +739,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'free'
+        args['joinType'] = 'free'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve']
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Edge_1_Oldest_Free(self):
 
@@ -697,9 +759,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'free'
+        args['joinType'] = 'free'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve']
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Edge_2_Oldest_Free(self):
 
@@ -715,9 +779,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'free'
+        args['joinType'] = 'free'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve']
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Edge_1_All_Free(self):
 
@@ -733,9 +799,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'free'
+        args['joinType'] = 'free'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve']
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Edge_2_All_Free(self):
 
@@ -751,9 +819,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'free'
+        args['joinType'] = 'free'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve']
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Node_1_Youngest_Free(self):
 
@@ -769,9 +839,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'free'
+        args['joinType'] = 'free'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve']
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Node_2_Youngest_Free(self):
 
@@ -787,9 +859,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'free'
+        args['joinType'] = 'free'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve']
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Node_1_Oldest_Free(self):
 
@@ -805,9 +879,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'free'
+        args['joinType'] = 'free'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve']
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Node_2_Oldest_Free(self):
 
@@ -823,9 +899,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'free'
+        args['joinType'] = 'free'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve']
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Node_1_All_Free(self):
 
@@ -841,9 +919,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'free'
+        args['joinType'] = 'free'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve']
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Node_2_All_Free(self):
 
@@ -859,9 +939,11 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'free'
+        args['joinType'] = 'free'
+        args['joinPreserve'] = 0.9
 
-        self.compareGrowthWeights(args, testJoinWeights=True)
+        alpha = args['joinPreserve']
+        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
 
     def testGrowthStepWeights_Edge_2_All_BN_Free(self):
 
@@ -877,7 +959,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'free'
+        args['joinType'] = 'free'
+        args['joinPreserve'] = 0.9
 
         batchNormComparisons = [
             {0: [3, 4], 1: [5, 6]},
@@ -885,9 +968,13 @@ class TestGrowthStepWeights(unittest.TestCase):
                 5: [19, 20], 6: [21, 22]}
         ]
 
-        self.compareGrowthWeights(args,
+        alpha = args['joinPreserve']
+        self.compareGrowthWeights(
+                args,
                 batchNormComparisons=batchNormComparisons,
-                testJoinWeights=True)
+                testJoinWeights=True,
+                alpha=alpha
+        )
 
     def testGrowthStepWeights_Node_2_All_BN_Free(self):
 
@@ -903,19 +990,24 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'free'
+        args['joinType'] = 'free'
+        args['joinPreserve'] = 0.9
 
         batchNormComparisons = [
             {1: [3, 4]},
             {1: [5, 6], 3: [7, 8], 4: [9, 10]}
         ]
 
-        self.compareGrowthWeights(args,
+        alpha = args['joinPreserve']
+        self.compareGrowthWeights(
+                args,
                 batchNormComparisons=batchNormComparisons,
-                testJoinWeights=True)
+                testJoinWeights=True,
+                alpha=alpha
+        )
 
     def compareGrowthWeights(self, args, batchNormComparisons=[],
-            testJoinWeights=False):
+            testJoinWeights=False, alpha=1.):
 
         controller = GrowthController(**args)
         stateDicts = []
@@ -931,7 +1023,7 @@ class TestGrowthStepWeights(unittest.TestCase):
         # Compare features and classifier for consecutive steps
         for i in range(args['growthSteps'] - 1):
             self.assertEqualLayers(stateDicts[i], stateDicts[i + 1], nodes[i],
-                    args['numSections'], testJoinWeights)
+                    args['numSections'], testJoinWeights, alpha=alpha)
             self.assertEqualClassifier(stateDicts[i], stateDicts[i + 1])
 
             # Compare batch norm parameters

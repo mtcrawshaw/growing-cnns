@@ -11,7 +11,10 @@
     "itemsToExpand": "youngest",
     "copyBatchNorm": true,
     "randomWeights": false,
-    "joinWeighting": "uniform",
+    "joinWeighting": {
+	    "type": "uniform",
+    	    "preserve": 0.95
+    },
     "stoppingCriteria": {
 	    "type": "fixedEpochs",
 	    "numEpochs": 3

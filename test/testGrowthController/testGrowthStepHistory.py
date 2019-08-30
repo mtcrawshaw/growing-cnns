@@ -38,7 +38,7 @@ class TestGrowthStepHistory(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
@@ -62,7 +62,7 @@ class TestGrowthStepHistory(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1},
@@ -88,7 +88,7 @@ class TestGrowthStepHistory(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
@@ -112,7 +112,7 @@ class TestGrowthStepHistory(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1},
@@ -137,7 +137,7 @@ class TestGrowthStepHistory(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
@@ -162,7 +162,7 @@ class TestGrowthStepHistory(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1, 5: 1, 6: 1},
@@ -188,7 +188,7 @@ class TestGrowthStepHistory(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1},
@@ -212,7 +212,7 @@ class TestGrowthStepHistory(unittest.TestCase):
         args['itemsToExpand'] = 'youngest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
@@ -236,7 +236,7 @@ class TestGrowthStepHistory(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1},
@@ -260,7 +260,7 @@ class TestGrowthStepHistory(unittest.TestCase):
         args['itemsToExpand'] = 'oldest'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},
@@ -284,7 +284,7 @@ class TestGrowthStepHistory(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1},
@@ -308,7 +308,7 @@ class TestGrowthStepHistory(unittest.TestCase):
         args['itemsToExpand'] = 'all'
         args['copyBatchNorm'] = True
         args['randomWeights'] = False
-        args['joinWeighting'] = 'uniform'
+        args['joinType'] = 'uniform'
         expectedHistory = [
                 {0: 0, 1: 0, 2: 0},
                 {0: 0, 1: 0, 2: 0, 3: 1, 4: 1},

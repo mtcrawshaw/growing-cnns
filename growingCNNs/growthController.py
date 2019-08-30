@@ -19,7 +19,8 @@ class GrowthController():
     def __init__(self, initialChannels=64, numSections=4, initialNumNodes=3,
             growthSteps=3, numClasses=1000, batchNorm=True,
             growthMode='expandEdge', numConvToAdd=1, itemsToExpand='youngest',
-            randomWeights=False, copyBatchNorm=True, joinWeighting='uniform'):
+            randomWeights=False, copyBatchNorm=True, joinType='uniform',
+            joinPreserve=0.9):
         
         self.numClasses = numClasses
         self.batchNorm = batchNorm
@@ -34,7 +35,8 @@ class GrowthController():
         self.itemsToExpand = itemsToExpand
         self.randomWeights = randomWeights
         self.copyBatchNorm = copyBatchNorm
-        self.joinWeighting = joinWeighting
+        self.joinType = joinType
+        self.joinPreserve = joinPreserve
 
         # The ith element of growthHistory is the growth step during which the
         # ith node of the current model's computation graph was inserted.
@@ -58,7 +60,7 @@ class GrowthController():
                     numSections=self.numSections,
                     numClasses=self.numClasses,
                     batchNorm=self.batchNorm,
-                    joinWeighting=self.joinWeighting
+                    joinWeighting=self.joinType
             ) 
             for i in compGraph.nodes:
                 self.growthHistory[i] = 0
@@ -81,7 +83,7 @@ class GrowthController():
                 numClasses=self.numClasses,
                 batchNorm=self.batchNorm, 
                 randomWeights=self.randomWeights,
-                joinWeighting=self.joinWeighting
+                joinWeighting=self.joinType
         )
 
         # Transfer weights from old model to new model
@@ -105,11 +107,23 @@ class GrowthController():
                     # We have to use torch.no_grad instead of loading from/to
                     # the state dict, since we only want to modify the first
                     # n elements of the join weight vector.
-                    if self.joinWeighting in ['softmax', 'free']:
+                    if self.joinType in ['softmax', 'free']:
                         oldJoinWeights = oldModel.joinWeights[i][j]
-                        n = oldJoinWeights.shape[0]
+                        newJoinWeights = newModel.joinWeights[i][j]
+                        oldN = oldJoinWeights.shape[0]
+                        newN = newJoinWeights.shape[0]
                         with torch.no_grad():
-                            newModel.joinWeights[i][j][:n] = oldJoinWeights
+                            newJoinWeights[:oldN] = oldJoinWeights
+
+                        # If new nodes are providing input to the current
+                        # node, we multiply the old weights by a constant
+                        # to take a weighted average of the old join input
+                        # with the new input.
+                        if oldN < newN:
+                            alpha = self.joinPreserve # Breaks for softmax
+                            with torch.no_grad():
+                                newJoinWeights[:oldN] *= alpha
+                                newJoinWeights[oldN:] = 1. - alpha
 
                 else:
 
@@ -148,10 +162,22 @@ class GrowthController():
                 elif weightToCopy == 'join':
 
                     # Grab join weights from source node and insert into
-                    joinWeights = oldModel.joinWeights[i][sourceNode]
-                    n = joinWeights.shape[0]
+                    oldJoinWeights = oldModel.joinWeights[i][sourceNode]
+                    newJoinWeights = newModel.joinWeights[i][destNode]
+                    oldN = oldJoinWeights.shape[0]
+                    newN = newJoinWeights.shape[0]
                     with torch.no_grad():
-                        newModel.joinWeights[i][destNode][:n] = joinWeights
+                        newJoinWeights[:oldN] = oldJoinWeights
+
+                    # If new nodes are providing input to the current
+                    # node, we multiply the old weights by a constant
+                    # to take a weighted average of the old join input
+                    # with the new input.
+                    if oldN < newN:
+                        alpha = self.joinPreserve # Breaks for softmax
+                        with torch.no_grad():
+                            newJoinWeights[:oldN] *= alpha
+                            newJoinWeights[oldN:] = 1. - alpha
 
 
         # Transfer classifier weights
