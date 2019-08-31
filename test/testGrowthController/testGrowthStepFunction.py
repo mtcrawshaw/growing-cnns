@@ -727,10 +727,7 @@ class TestGrowthStepFunction(unittest.TestCase):
 
         # Compare outputs
         for i in range(args['growthSteps'] - 1):
-            close = np.allclose(outputs[i], outputs[i + 1], atol=1e-6)
-            if not close:
-                print(maxDiff(outputs[i], outputs[i + 1]))
-            self.assertTrue(close)
+            self.assertTrue(np.allclose(outputs[i], outputs[i + 1], atol=1e-6))
 
 if __name__ == '__main__':
     unittest.main()

@@ -121,9 +121,10 @@ class GrowthController():
                         # with the new input.
                         if oldN < newN:
                             alpha = self.joinPreserve # Breaks for softmax
+                            numNew = newN - oldN
                             with torch.no_grad():
                                 newJoinWeights[:oldN] *= alpha
-                                newJoinWeights[oldN:] = 1. - alpha
+                                newJoinWeights[oldN:] = (1. - alpha) / numNew
 
                 else:
 
@@ -175,9 +176,10 @@ class GrowthController():
                     # with the new input.
                     if oldN < newN:
                         alpha = self.joinPreserve # Breaks for softmax
+                        numNew = newN - oldN
                         with torch.no_grad():
                             newJoinWeights[:oldN] *= alpha
-                            newJoinWeights[oldN:] = 1. - alpha
+                            newJoinWeights[oldN:] = (1. - alpha) / numNew
 
 
         # Transfer classifier weights
