@@ -22,6 +22,40 @@ def getTestInput(inputShape):
         testInput = torch.as_tensor(testInput, dtype=torch.float32)
         return testInput
 
+def setWeights(numSections, stateDict, convParams, joinParams=None):
+
+    for section in range(numSections):
+        for nodeIndex in convParams:
+
+            # Set convolutional weights
+            keyPrefix = 'sections.%d.%d.0.' % (section, nodeIndex)
+            weightKey = keyPrefix + 'weight'
+            biasKey = keyPrefix + 'bias'
+
+            weight, bias = convParams[nodeIndex]
+            biasArr = np.zeros(stateDict[biasKey].shape, dtype=float)
+            for i in range(3):
+                biasArr[i] = bias
+
+            stateDict[weightKey] *= weight
+            biasTensor = torch.from_numpy(biasArr).float().cuda()
+            stateDict[biasKey] += biasTensor
+
+        if joinParams is None:
+            continue
+        for nodeIndex in joinParams:
+
+            # Set join weights
+            if joinParams is not None:
+                joinKey = 'joinWeights.%d.%d' % (section, nodeIndex)
+                joinArr = np.zeros(stateDict[joinKey].shape, dtype=float)
+                for i in range(stateDict[joinKey].shape[0]):
+                    joinArr[i] = joinParams[nodeIndex][i]
+                stateDict[joinKey] = torch.from_numpy(joinArr).float().cuda()
+
+    return stateDict
+
+
 def getActivations(testInput, model):
 
     currentActivations = [testInput]
