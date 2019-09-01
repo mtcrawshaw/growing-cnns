@@ -10,7 +10,6 @@ Setting for randomly initialized new layers
 
 Functionality cards:
 Loss convergence (rename current lossConvergence to earlyStopping)
-Growth step transfers weights with best validation performance
 Different block types
 
 Errand cards:
@@ -25,6 +24,5 @@ Add option for CPU only
 Add clock time to logs
 
 Notes for tomorrow:
-Set softmax weights using joinPreserve correctly?
 Add tests for softmax/free join weights that are not equal to initialized version, or with learned weights
 Make sure join weights are trainable (may need torch functional interface)

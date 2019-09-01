@@ -2,6 +2,7 @@ import os
 import sys
 import unittest
 import importlib
+from math import log
 
 import torch
 import numpy as np
@@ -47,7 +48,7 @@ class TestGrowthStepWeights(unittest.TestCase):
     # Helper function to test if weights were properly transferred between
     # a network and its successor
     def assertEqualLayers(self, stateDict1, stateDict2, oldNodes, numSections,
-            testJoinWeights=False, alpha=1.):
+            joinType='uniform', joinPreserve=1.):
 
         stateDicts = [stateDict1, stateDict2]
 
@@ -85,14 +86,33 @@ class TestGrowthStepWeights(unittest.TestCase):
                     self.assertTrue(np.array_equal(values[0], values[1]))
                 elif 'joinWeights' in paramName:
                     n = min(len(values[0]), len(values[1]))
-                    if testJoinWeights:
+                    if joinType in ['softmax', 'free']:
                         if n < len(values[1]):
-                            self.assertTrue(np.array_equal(
-                                values[0][:n] * alpha,
+                            numNew = len(values[1]) - n
+                            if joinType == 'free':
+                                oldScale = joinPreserve
+                                newScale = (1. - joinPreserve) / numNew
+                            elif joinType == 'softmax':
+                                oldScale = 1.
+                                newScale = np.sum(np.exp(values[0][:n]))
+                                newScale *= (1. - joinPreserve)
+                                newScale /= numNew * joinPreserve
+                                newScale = log(newScale)
+                            newWeights = [newScale for _ in range(numNew)]
+                            newWeights = np.array(newWeights)
+                            newWeights = np.reshape(newWeights, [-1, 1, 1, 1, 1])
+
+                            self.assertTrue(np.allclose(
+                                values[0][:n] * oldScale,
                                 values[1][:n]
                             ))
+                            self.assertTrue(np.allclose(
+                                newWeights,
+                                values[1][n:]
+                            ))
+
                         else:
-                            self.assertTrue(np.array_equal(
+                            self.assertTrue(np.allclose(
                                 values[0][:n],
                                 values[1][:n]
                             ))
@@ -421,8 +441,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'softmax'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve'] # Broken
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, joinType='softmax', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Edge_2_Youngest_Softmax(self):
 
@@ -441,8 +461,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'softmax'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve'] # Broken
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, joinType='softmax', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Edge_1_Oldest_Softmax(self):
 
@@ -461,8 +481,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'softmax'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve'] # Broken
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, joinType='softmax', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Edge_2_Oldest_Softmax(self):
 
@@ -481,8 +501,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'softmax'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve'] # Broken
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, joinType='softmax', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Edge_1_All_Softmax(self):
 
@@ -501,8 +521,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'softmax'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve'] # Broken
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, joinType='softmax', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Edge_2_All_Softmax(self):
 
@@ -521,8 +541,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'softmax'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve'] # Broken
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, joinType='softmax', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Node_1_Youngest_Softmax(self):
 
@@ -541,8 +561,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'softmax'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve'] # Broken
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, joinType='softmax', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Node_2_Youngest_Softmax(self):
 
@@ -561,8 +581,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'softmax'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve'] # Broken
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, joinType='softmax', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Node_1_Oldest_Softmax(self):
 
@@ -581,8 +601,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'softmax'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve'] # Broken
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, joinType='softmax', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Node_2_Oldest_Softmax(self):
 
@@ -601,8 +621,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'softmax'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve'] # Broken
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, joinType='softmax', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Node_1_All_Softmax(self):
 
@@ -621,8 +641,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'softmax'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve'] # Broken
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, joinType='softmax', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Node_2_All_Softmax(self):
 
@@ -641,8 +661,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'softmax'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve'] # Broken
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve'] # Broken
+        self.compareGrowthWeights(args, joinType='softmax', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Edge_2_All_BN_Softmax(self):
 
@@ -667,12 +687,12 @@ class TestGrowthStepWeights(unittest.TestCase):
                 5: [19, 20], 6: [21, 22]}
         ]
 
-        alpha = args['joinPreserve'] # Broken
+        joinPreserve = args['joinPreserve'] # Broken
         self.compareGrowthWeights(
                 args,
                 batchNormComparisons=batchNormComparisons,
-                testJoinWeights=True,
-                alpha=alpha
+                joinType='softmax',
+                joinPreserve=joinPreserve
         )
 
     def testGrowthStepWeights_Node_2_All_BN_Softmax(self):
@@ -697,12 +717,12 @@ class TestGrowthStepWeights(unittest.TestCase):
             {1: [5, 6], 3: [7, 8], 4: [9, 10]}
         ]
 
-        alpha = args['joinPreserve'] # Broken
+        joinPreserve = args['joinPreserve'] # Broken
         self.compareGrowthWeights(
                 args,
                 batchNormComparisons=batchNormComparisons,
-                testJoinWeights=True,
-                alpha=alpha
+                joinType='softmax',
+                joinPreserve=joinPreserve
         )
 
     def testGrowthStepWeights_Edge_1_Youngest_Free(self):
@@ -722,8 +742,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'free'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve']
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve']
+        self.compareGrowthWeights(args, joinType='free', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Edge_2_Youngest_Free(self):
 
@@ -742,8 +762,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'free'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve']
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve']
+        self.compareGrowthWeights(args, joinType='free', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Edge_1_Oldest_Free(self):
 
@@ -762,8 +782,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'free'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve']
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve']
+        self.compareGrowthWeights(args, joinType='free', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Edge_2_Oldest_Free(self):
 
@@ -782,8 +802,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'free'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve']
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve']
+        self.compareGrowthWeights(args, joinType='free', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Edge_1_All_Free(self):
 
@@ -802,8 +822,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'free'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve']
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve']
+        self.compareGrowthWeights(args, joinType='free', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Edge_2_All_Free(self):
 
@@ -822,8 +842,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'free'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve']
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve']
+        self.compareGrowthWeights(args, joinType='free', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Node_1_Youngest_Free(self):
 
@@ -842,8 +862,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'free'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve']
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve']
+        self.compareGrowthWeights(args, joinType='free', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Node_2_Youngest_Free(self):
 
@@ -862,8 +882,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'free'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve']
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve']
+        self.compareGrowthWeights(args, joinType='free', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Node_1_Oldest_Free(self):
 
@@ -882,8 +902,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'free'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve']
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve']
+        self.compareGrowthWeights(args, joinType='free', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Node_2_Oldest_Free(self):
 
@@ -902,8 +922,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'free'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve']
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve']
+        self.compareGrowthWeights(args, joinType='free', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Node_1_All_Free(self):
 
@@ -922,8 +942,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'free'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve']
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve']
+        self.compareGrowthWeights(args, joinType='free', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Node_2_All_Free(self):
 
@@ -942,8 +962,8 @@ class TestGrowthStepWeights(unittest.TestCase):
         args['joinType'] = 'free'
         args['joinPreserve'] = 0.9
 
-        alpha = args['joinPreserve']
-        self.compareGrowthWeights(args, testJoinWeights=True, alpha=alpha)
+        joinPreserve = args['joinPreserve']
+        self.compareGrowthWeights(args, joinType='free', joinPreserve=joinPreserve)
 
     def testGrowthStepWeights_Edge_2_All_BN_Free(self):
 
@@ -968,12 +988,12 @@ class TestGrowthStepWeights(unittest.TestCase):
                 5: [19, 20], 6: [21, 22]}
         ]
 
-        alpha = args['joinPreserve']
+        joinPreserve = args['joinPreserve']
         self.compareGrowthWeights(
                 args,
                 batchNormComparisons=batchNormComparisons,
-                testJoinWeights=True,
-                alpha=alpha
+                joinType='free',
+                joinPreserve=joinPreserve
         )
 
     def testGrowthStepWeights_Node_2_All_BN_Free(self):
@@ -998,16 +1018,16 @@ class TestGrowthStepWeights(unittest.TestCase):
             {1: [5, 6], 3: [7, 8], 4: [9, 10]}
         ]
 
-        alpha = args['joinPreserve']
+        joinPreserve = args['joinPreserve']
         self.compareGrowthWeights(
                 args,
                 batchNormComparisons=batchNormComparisons,
-                testJoinWeights=True,
-                alpha=alpha
+                joinType='free',
+                joinPreserve=joinPreserve
         )
 
     def compareGrowthWeights(self, args, batchNormComparisons=[],
-            testJoinWeights=False, alpha=1.):
+            joinType=False, joinPreserve=1.):
 
         controller = GrowthController(**args)
         stateDicts = []
@@ -1023,7 +1043,7 @@ class TestGrowthStepWeights(unittest.TestCase):
         # Compare features and classifier for consecutive steps
         for i in range(args['growthSteps'] - 1):
             self.assertEqualLayers(stateDicts[i], stateDicts[i + 1], nodes[i],
-                    args['numSections'], testJoinWeights, alpha=alpha)
+                    args['numSections'], joinType, joinPreserve=joinPreserve)
             self.assertEqualClassifier(stateDicts[i], stateDicts[i + 1])
 
             # Compare batch norm parameters

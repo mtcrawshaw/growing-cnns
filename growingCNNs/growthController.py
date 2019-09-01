@@ -1,6 +1,8 @@
 import math
 
 import torch
+import numpy as np
+from math import log
 
 # This is in case no parent packages are imported, such as in the test cases
 try:
@@ -120,11 +122,22 @@ class GrowthController():
                         # to take a weighted average of the old join input
                         # with the new input.
                         if oldN < newN:
-                            alpha = self.joinPreserve # Breaks for softmax
                             numNew = newN - oldN
+
+                            if self.joinType == 'free':
+                                oldScale = self.joinPreserve
+                                newScale = (1. - self.joinPreserve) / numNew
+                            elif self.joinType == 'softmax':
+                                oldScale = 1.
+                                oldWeightsArr = oldJoinWeights.detach().cpu().numpy()
+                                newScale = np.sum(np.exp(oldWeightsArr))
+                                newScale = (1. - self.joinPreserve) * newScale
+                                newScale /= numNew * self.joinPreserve
+                                newScale = log(newScale)
+
                             with torch.no_grad():
-                                newJoinWeights[:oldN] *= alpha
-                                newJoinWeights[oldN:] = (1. - alpha) / numNew
+                                newJoinWeights[:oldN] *= oldScale
+                                newJoinWeights[oldN:] = newScale
 
                 else:
 
