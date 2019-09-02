@@ -22,27 +22,38 @@ def getTestInput(inputShape):
         testInput = torch.as_tensor(testInput, dtype=torch.float32)
         return testInput
 
-def setWeights(numSections, stateDict, convParams, joinParams=None):
+def setWeights(model, convParams, joinParams):
 
-    for section in range(numSections):
+    stateDict = model.state_dict()
+    for section in range(model.numSections):
         for nodeIndex in convParams:
 
             # Set convolutional weights
             keyPrefix = 'sections.%d.%d.0.' % (section, nodeIndex)
             weightKey = keyPrefix + 'weight'
             biasKey = keyPrefix + 'bias'
+            weightScale, biasScale = convParams[nodeIndex]
 
-            weight, bias = convParams[nodeIndex]
+            # Set weight to dirac delta initialization, bias to 0
+            numNonzeroChannels = 3
+            weightArr = np.zeros(stateDict[weightKey].shape)
+            biasArr = np.zeros(stateDict[biasKey].shape)
+            _, depth, width, height = stateDict[weightKey].shape
+            xMiddle = int(width / 2)
+            yMiddle = int(height / 2)
+            for c in range(numNonzeroChannels):
+                weightArr[c, c, xMiddle, yMiddle] = 1.
+            stateDict[weightKey] = torch.from_numpy(weightArr).float().cuda()
+            stateDict[biasKey] = torch.from_numpy(biasArr).float().cuda()
+
+            # Scale convolutional weights, add to bias
+            stateDict[weightKey] *= weightScale
             biasArr = np.zeros(stateDict[biasKey].shape, dtype=float)
-            for i in range(3):
-                biasArr[i] = bias
-
-            stateDict[weightKey] *= weight
+            for i in range(numNonzeroChannels):
+                biasArr[i] = biasScale
             biasTensor = torch.from_numpy(biasArr).float().cuda()
             stateDict[biasKey] += biasTensor
 
-        if joinParams is None:
-            continue
         for nodeIndex in joinParams:
 
             # Set join weights
@@ -53,7 +64,8 @@ def setWeights(numSections, stateDict, convParams, joinParams=None):
                     joinArr[i] = joinParams[nodeIndex][i]
                 stateDict[joinKey] = torch.from_numpy(joinArr).float().cuda()
 
-    return stateDict
+    model.load_state_dict(stateDict)
+    return model
 
 
 def getActivations(testInput, model):

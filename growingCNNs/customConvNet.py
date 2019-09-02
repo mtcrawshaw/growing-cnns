@@ -53,6 +53,7 @@ class CustomConvNet(nn.Module):
         self.numSections = numSections
         self.batchNorm = batchNorm
         self.joinWeighting = joinWeighting
+        self.randomWeights = randomWeights
         self.sections = self.makeSections()
         self.joinWeights = self.makeJoinWeights()
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
@@ -70,7 +71,7 @@ class CustomConvNet(nn.Module):
         self.classifier = nn.Linear(depth, numClasses)
 
         # Initialize weights
-        self._initializeWeights(randomWeights)
+        self._initializeWeights(self.randomWeights)
 
 
     def forward(self, x):

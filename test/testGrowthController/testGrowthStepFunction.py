@@ -11,6 +11,7 @@ testRoot = os.path.join(projectRoot, 'test')
 sys.path.append(testRoot)
 testUtils = importlib.import_module('testUtils')
 getTestInput = testUtils.getTestInput
+setWeights = testUtils.setWeights
 maxDiff = testUtils.maxDiff
 
 packageRoot = os.path.join(projectRoot, 'growingCNNs')
@@ -712,7 +713,7 @@ class TestGrowthStepFunction(unittest.TestCase):
 
         controller = GrowthController(**args)
         outputs = []
-        
+
         # Create test input
         inputShape = [8, 3, 32, 32]
         testInput = getTestInput(inputShape)
@@ -728,6 +729,168 @@ class TestGrowthStepFunction(unittest.TestCase):
         # Compare outputs
         for i in range(args['growthSteps'] - 1):
             self.assertTrue(np.allclose(outputs[i], outputs[i + 1], atol=1e-6))
+
+    def testGrowthStepFunction_Manual_1(self):
+
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandNode'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinType'] = 'uniform'
+        args['joinPreserve'] = 0.9
+
+        convParams = [{
+                0: (2., 1.),
+                1: (0.5, 3.),
+                2: (1., 2.),
+            }, {
+                3: (2., 1.),
+                4: (0.5, 0.)
+            }
+        ]
+        joinParams = [{}, {}]
+        expectedAffine = (1.5, 4.5)
+
+        self.compareManualGrowthFunction(
+                args,
+                convParams,
+                joinParams,
+                expectedAffine
+        )
+
+    def testGrowthStepFunction_Manual_2(self):
+
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandNode'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinType'] = 'softmax'
+        args['joinPreserve'] = 0.8
+
+        convParams = [{
+                0: (2., 1.),
+                1: (0.5, 3.),
+                2: (1., 2.),
+            }, {
+                3: (1., 1.),
+                4: (0.5, 0.)
+            }
+        ]
+        joinParams = [{}, {}]
+        expectedAffine = (1., 5.)
+
+        self.compareManualGrowthFunction(
+                args,
+                convParams,
+                joinParams,
+                expectedAffine
+        )
+
+    def testGrowthStepFunction_Manual_3(self):
+
+        args = {}
+        args['initialChannels'] = 8
+        args['numSections'] = 3
+        args['initialNumNodes'] = 3
+        args['growthSteps'] = 3
+        args['numClasses'] = 1000
+        args['batchNorm'] = False
+        args['growthMode'] = 'expandNode'
+        args['numConvToAdd'] = 2
+        args['itemsToExpand'] = 'all'
+        args['copyBatchNorm'] = True
+        args['randomWeights'] = False
+        args['joinType'] = 'free'
+        args['joinPreserve'] = 0.9
+
+        convParams = [{
+                0: (2., 1.),
+                1: (0.5, 2.),
+                2: (1., 2.),
+            }, {
+                3: (1., 1.),
+                4: (0.5, 0.)
+            }
+        ]
+        joinParams = [{}, {}]
+        expectedAffine = (1., 4.35)
+
+        self.compareManualGrowthFunction(
+                args,
+                convParams,
+                joinParams,
+                expectedAffine
+        )
+
+    def compareManualGrowthFunction(self, args, convParams, joinParams,
+            expectedAffine):
+
+        controller = GrowthController(**args)
+
+        # Initialize model and set weights
+        model = controller.step()
+        model = model.cuda(0)
+        model = setWeights(
+                model,
+                convParams[0],
+                joinParams[0]
+        )
+
+        # Grow model and set weights of new nodes
+        model = controller.step(oldModel=model)
+        model = model.cuda(0)
+        model = setWeights(
+                model,
+                convParams[1],
+                joinParams[1]
+        )
+
+        # Create test input
+        inputShape = [8, 3, 32, 32]
+        testInput = getTestInput(inputShape)
+        testInput = testInput.cuda(0)
+
+        # Run forward pass
+        output = model.convForward(testInput)
+
+        # Build expected output
+        outputShape = list(inputShape)
+        outputShape[1] = args['initialChannels'] * (2 ** args['numSections'])
+        outputShape[2] = outputShape[2] // (2 ** args['numSections'])
+        outputShape[3] = outputShape[3] // (2 ** args['numSections'])
+        expectedOutput = np.zeros(outputShape)
+        for b in range(outputShape[0]):
+            for c in range(3):
+                for x in range(outputShape[2]):
+                    for y in range(outputShape[3]):
+                        maxX = (x + 1) * (2 ** args['numSections']) - 1
+                        maxY = (y + 1) * (2 ** args['numSections']) - 1
+                        expectedOutput[b, c, x, y] = b + c + maxX + maxY
+
+                        for i in range(args['numSections']):
+                            expectedOutput[b, c, x, y] *= expectedAffine[0]
+                            expectedOutput[b, c, x, y] += expectedAffine[1]
+
+        # Test output
+        outputValue = output.detach().cpu().numpy()
+        self.assertTrue(np.allclose(expectedOutput, outputValue))
+
 
 if __name__ == '__main__':
     unittest.main()

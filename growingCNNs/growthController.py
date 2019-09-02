@@ -61,6 +61,7 @@ class GrowthController():
                     initialChannels=self.initialChannels,
                     numSections=self.numSections,
                     numClasses=self.numClasses,
+                    randomWeights=self.randomWeights,
                     batchNorm=self.batchNorm,
                     joinWeighting=self.joinType
             ) 

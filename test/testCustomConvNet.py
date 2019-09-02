@@ -318,14 +318,11 @@ class TestCustomConvNet(unittest.TestCase):
         model = CustomConvNet(**args)
         model = model.cuda(0)
 
-        stateDict = model.state_dict()
-        newStateDict = setWeights(
-                args['numSections'],
-                stateDict,
+        model = setWeights(
+                model,
                 convParams,
-                joinParams=joinParams
+                joinParams
         )
-        model.load_state_dict(stateDict)
 
         # Create test input
         inputShape = [8, 3, 32, 32]
