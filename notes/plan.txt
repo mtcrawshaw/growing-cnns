@@ -9,6 +9,7 @@ Join mode:
 Setting for randomly initialized new layers
 
 Functionality cards:
+Options for growth speed
 Loss convergence (rename current lossConvergence to earlyStopping)
 Different block types
 

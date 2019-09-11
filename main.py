@@ -137,17 +137,17 @@ def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
     if 'preserve' in settings['join']:
         joinPreserve = settings['join']['preserve']
     growthController = GrowthController(
-            settings['initialChannels'],
-            settings['numSections'],
-            settings['initialNumNodes'],
-            settings['growthSteps'],
-            numClasses,
-            settings['batchNorm'],
-            settings['growthMode'],
-            settings['numConvToAdd'],
-            settings['itemsToExpand'],
-            settings['join']['type'],
-            joinPreserve
+            initialChannels=settings['initialChannels'],
+            numSections=settings['numSections'],
+            initialNumNodes=settings['initialNumNodes'],
+            growthSteps=settings['growthSteps'],
+            numClasses=numClasses,
+            batchNorm=settings['batchNorm'],
+            growthMode=settings['growthMode'],
+            numConvToAdd=settings['numConvToAdd'],
+            itemsToExpand=settings['itemsToExpand'],
+            joinType=settings['join']['type'],
+            joinPreserve=joinPreserve
     )
     model = None
     for growthStep in range(settings['growthSteps']):
@@ -240,19 +240,19 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
     if 'preserve' in settings['join']:
         joinPreserve = settings['join']['preserve']
     growthController = GrowthController(
-            settings['initialChannels'],
-            settings['numSections'],
-            settings['initialNumNodes'],
-            settings['growthSteps'],
-            numClasses,
-            settings['batchNorm'],
-            settings['growthMode'],
-            settings['numConvToAdd'],
-            settings['itemsToExpand'],
-            settings['randomWeights'],
-            settings['copyBatchNorm'],
-            settings['join']['type'],
-            joinPreserve
+            initialChannels=settings['initialChannels'],
+            numSections=settings['numSections'],
+            initialNumNodes=settings['initialNumNodes'],
+            growthSteps=settings['growthSteps'],
+            numClasses=numClasses,
+            batchNorm=settings['batchNorm'],
+            growthMode=settings['growthMode'],
+            numConvToAdd=settings['numConvToAdd'],
+            itemsToExpand=settings['itemsToExpand'],
+            randomWeights=settings['randomWeights'],
+            copyBatchNorm=settings['copyBatchNorm'],
+            joinType=settings['join']['type'],
+            joinPreserve=joinPreserve
     )
     totalEpoch = 0
 
@@ -308,6 +308,10 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
     # Outer training loop
     bestAcc1 = 0
     for i in range(growthController.growthSteps):
+
+        # Test
+        with open('debug', 'a+') as f:
+            f.write("Growth step: %d\n" % i)
 
         # Create train and validation loader from dataset
         if isinstance(settings['batchSize'], list):
@@ -402,6 +406,14 @@ def train(trainLoader, model, criterion, optimizer, epoch, args, trainResults, g
     for i, (input, target) in enumerate(trainLoader):
         # measure data loading time
         dataTime.update(time.time() - end)
+
+        # Test
+        with open('debug', 'a+') as f:
+            f.write('FLAG\n')
+            for name, param in model.joinWeights.named_parameters():
+                f.write(name + '\n')
+                f.write(str(param.data) + '\n')
+                f.write(str(param.requires_grad) + '\n')
 
         input = input.cuda(args.gpu, non_blocking=True)
         target = target.cuda(args.gpu, non_blocking=True)
