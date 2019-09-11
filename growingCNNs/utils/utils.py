@@ -44,6 +44,9 @@ def getInitialOptimizerParams(model, growthHistory, initialLR,
             optimizerParams.append({
                 'params': model.sections[section][i].parameters(),
                 'lr': lr})
+            optimizerParams.append({
+                'params': model.joinWeights[section][i],
+                'lr': lr})
 
     classifierLR = initialLR * (lrGrowthDecay ** growthStep)
     optimizerParams.append({'params': model.classifier.parameters(),

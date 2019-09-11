@@ -48,7 +48,7 @@ class CustomConvNet(nn.Module):
         # So that input to first node is input to forward (see sectionForward)
         self.revAdjList[0].append(-1)
 
-        # Create sections
+        # Create sections and join weights
         self.initialChannels = initialChannels
         self.numSections = numSections
         self.batchNorm = batchNorm
