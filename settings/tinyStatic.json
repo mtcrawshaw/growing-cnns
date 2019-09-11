@@ -9,13 +9,11 @@
     "growthMode": "linear",
     "numConvToAdd": 1,
     "itemsToExpand": "youngest",
-    "copyBatchNorm": true,
-    "randomWeights": false,
-    "joinWeighting": {
+    "join": {
 	    "type": "uniform",
     	    "preserve": 0.95
     },
-    "stoppingCriteria": {
+    "stopping": {
 	    "type": "lossConvergence",
 	    "testWindow": 2,
 	    "maxEpochs": 1

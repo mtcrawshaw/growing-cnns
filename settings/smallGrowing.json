@@ -11,14 +11,13 @@
     "itemsToExpand": "youngest",
     "copyBatchNorm": true,
     "randomWeights": false,
-    "joinWeighting": {
-	    "type": "uniform",
-    	    "preserve": 0.95
+    "join": {
+	    "type": "softmax",
+    	    "preserve": 0.9
     },
-    "stoppingCriteria": {
-	    "type": "lossConvergence",
-	    "testWindow": 2,
-	    "maxEpochs": 3
+    "stopping": {
+	    "type": "fixedEpochs",
+	    "numEpochs": 1
     },
 
     "batchSize": [512, 512, 512],

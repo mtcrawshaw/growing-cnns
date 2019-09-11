@@ -44,6 +44,12 @@ def main(args):
     with open(args.settingsFile, 'r') as settingsFile:
         settings = json.load(settingsFile)
     experimentType = 'growing' if settings['growing'] else 'static'
+
+    # Make sure settings are good
+    assert settings['growthMode'] in ['expandEdge', 'expandNode']
+    assert settings['itemsToExpand'] in ['all', 'oldest', 'youngest']
+    assert settings['join']['type'] in ['uniform', 'softmax', 'free']
+    assert settings['stopping']['type'] in ['fixedEpochs', 'lossConvergence']
     
     # Create experiments directory if it doesn't already exist
     experimentsDir = os.path.join(os.path.dirname(__file__), 'experiments')
@@ -128,8 +134,8 @@ def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
     # Create model. Here we grow a model to full size without any training
     # until the model is full-grown.
     joinPreserve = None
-    if 'joinPreserve' in settings['joinWeighting']:
-        joinPreserve = settings['joinWeighting']['preserve']
+    if 'preserve' in settings['join']:
+        joinPreserve = settings['join']['preserve']
     growthController = GrowthController(
             settings['initialChannels'],
             settings['numSections'],
@@ -140,15 +146,18 @@ def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
             settings['growthMode'],
             settings['numConvToAdd'],
             settings['itemsToExpand'],
-            settings['randomWeights'],
-            settings['copyBatchNorm'],
-            settings['joinWeighting']['type'],
+            settings['join']['type'],
             joinPreserve
     )
     model = None
     for growthStep in range(settings['growthSteps']):
         oldModel = None if growthStep == 0 else model
         model = growthController.step(oldModel=model)
+
+    # Here we reset the weights since we are treating the final growth step
+    # of the controller as the first (and only) growth step of the model
+    model._initializeWeights(randomWeights=True)
+    model.joinWeights = model.makeJoinWeights()
     model = model.cuda(args.gpu)
 
     # Create optimizer
@@ -176,9 +185,8 @@ def runStatic(numClasses, args, settings, criterion, trainDataset, valDataset):
     validateResults = []
 
     # Create stopping criteria
-    stoppingSettings = settings['stoppingCriteria']
+    stoppingSettings = settings['stopping']
     stoppingType = stoppingSettings['type']
-    assert stoppingType in ['fixedEpochs', 'lossConvergence']
     stoppingCriteria = None
     if stoppingType == 'fixedEpochs':
         numEpochs = stoppingSettings['numEpochs']
@@ -229,8 +237,8 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
     
     # Create growth controller
     joinPreserve = None
-    if 'joinPreserve' in settings['joinWeighting']:
-        joinPreserve = settings['joinWeighting']['preserve']
+    if 'preserve' in settings['join']:
+        joinPreserve = settings['join']['preserve']
     growthController = GrowthController(
             settings['initialChannels'],
             settings['numSections'],
@@ -243,7 +251,8 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
             settings['itemsToExpand'],
             settings['randomWeights'],
             settings['copyBatchNorm'],
-            settings['joinWeighting']
+            settings['join']['type'],
+            joinPreserve
     )
     totalEpoch = 0
 
@@ -285,9 +294,8 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
     validateResults = []
 
     # Create stopping criteria
-    stoppingSettings = settings['stoppingCriteria']
+    stoppingSettings = settings['stopping']
     stoppingType = stoppingSettings['type']
-    assert stoppingType in ['fixedEpochs', 'lossConvergence']
     stoppingCriteria = None
     if stoppingType == 'fixedEpochs':
         numEpochs = stoppingSettings['numEpochs']

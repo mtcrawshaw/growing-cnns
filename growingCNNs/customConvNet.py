@@ -249,7 +249,10 @@ class CustomConvNet(nn.Module):
 
                 # Expand weight tensor to match input dimensions
                 weightTensor = weightTensor.view(-1, 1, 1, 1, 1)
-                nodeList.append(torch.nn.Parameter(weightTensor))
+                nodeList.append(torch.nn.Parameter(
+                    weightTensor,
+                    requires_grad=train
+                ))
 
             sectionList.append(ParameterList(nodeList))
 
