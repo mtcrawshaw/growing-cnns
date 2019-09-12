@@ -309,10 +309,6 @@ def runGrowing(numClasses, args, settings, criterion, trainDataset,
     bestAcc1 = 0
     for i in range(growthController.growthSteps):
 
-        # Test
-        with open('debug', 'a+') as f:
-            f.write("Growth step: %d\n" % i)
-
         # Create train and validation loader from dataset
         if isinstance(settings['batchSize'], list):
             batchSize = settings['batchSize'][i]
@@ -406,14 +402,6 @@ def train(trainLoader, model, criterion, optimizer, epoch, args, trainResults, g
     for i, (input, target) in enumerate(trainLoader):
         # measure data loading time
         dataTime.update(time.time() - end)
-
-        # Test
-        with open('debug', 'a+') as f:
-            f.write('FLAG\n')
-            for name, param in model.joinWeights.named_parameters():
-                f.write(name + '\n')
-                f.write(str(param.data) + '\n')
-                f.write(str(param.requires_grad) + '\n')
 
         input = input.cuda(args.gpu, non_blocking=True)
         target = target.cuda(args.gpu, non_blocking=True)
