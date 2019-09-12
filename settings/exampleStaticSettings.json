@@ -20,9 +20,10 @@
 
     "batchSize": 64,
     "initialLearningRate": 0.01,
-    "lrDecayStep": 5,
-    "lrDecayRatio": 0.1,
     "momentum": 0.9,
     "weightDecay": 1e-4,
-    "batchNorm": true
+    "batchNorm": true,
+
+    "lrDecayStep": 5,
+    "lrDecayRatio": 0.1
 }

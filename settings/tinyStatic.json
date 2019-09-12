@@ -6,7 +6,7 @@
     "initialNumNodes": 2,
 
     "growthSteps": 1,
-    "growthMode": "linear",
+    "growthMode": "expandEdge",
     "numConvToAdd": 1,
     "itemsToExpand": "youngest",
     "join": {
@@ -21,9 +21,10 @@
 
     "batchSize": 256,
     "initialLearningRate": 0.01,
-    "lrDecayStep": 5,
-    "lrDecayRatio": 0.5,
     "momentum": 0.9,
     "weightDecay": 1e-4,
-    "batchNorm": true
+    "batchNorm": true,
+
+    "lrDecayStep": 5,
+    "lrDecayRatio": 0.5
 }
