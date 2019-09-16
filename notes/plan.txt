@@ -1,13 +1,3 @@
-Current sprint:
-Join weighting:
-- Learned free weighting
-- Learned softmax weighting
-- Sliding weighting
-Join mode:
-- Weighted average
-- Probabilistic sample
-Setting for randomly initialized new layers
-
 Functionality cards:
 Options for growth speed
 Loss convergence (rename current lossConvergence to earlyStopping)
@@ -23,6 +13,3 @@ Fix argument structure for training/evaluation
 Convert to package and fix imports
 Add option for CPU only
 Add clock time to logs
-
-Notes for tomorrow:
-Make sure join weights are trainable (may need torch functional interface)
